@@ -38,7 +38,6 @@ fp32 turn_relative_angle_get;
 /*      函数及声明   */
 static void gimbal_init();
 static void gimbal_mode_set();
-
 static void gimbal_active_handle();
 static void gimbal_relax_handle();
 static void gimbal_ctrl_loop_cal();
@@ -130,7 +129,7 @@ static void gimbal_init(){
     gimbal.pitch.motor_measure=&motor_pitch_measure;
 
     gimbal.mode=gimbal.last_mode=GIMBAL_RELAX;
-
+    //pid初始化
     pid_init(&gimbal.yaw.angle_p,
              GIMBAL_YAW_ANGLE_MAX_OUT,
              GIMBAL_YAW_ANGLE_MAX_IOUT,

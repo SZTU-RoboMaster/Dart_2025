@@ -2,21 +2,28 @@
 #include "dart.h"
 #include "cmsis_os.h"
 #include "can_receive.h"
-#include "user_lib.h"
+#include "user_lib.h"    //todo 未使用的头文件删除
 #include "Atti.h"
 #include "protocol_shaob.h"
 #include "stdlib.h"
 
-uint8_t direction=0;
+uint8_t direction=0;    //todo 在哪里用到了，如果未用到，可以删掉
 uint8_t num_launched=0;//飞镖已发射数目
 uint8_t dart_goal;//飞镖目标,1为前哨站,2为基地
+
+enum Dart_goal{
+    GOAL_FRONT_STATION,//前哨站
+    GOAL_BASE_STATION//基地
+    }; //todo 改成枚举是不是更易懂
+
 uint8_t launcherable_num;//飞镖可发射数目1为两发,2为四发
-struct Launch_t launcher1;
+struct Launch_t launcher1;  //todo 改成launcher
 struct Gimbal_t gimbal_dart;
 struct Thrust_t thrust_motor;
-struct All_Flag flags;
-motor_measure_t motor_3508_dart1[2];
-motor_measure_t motor_2006_dart1[3];
+struct All_Flag flags;  //todo 标志位一般用枚举
+
+motor_measure_t motor_3508_dart1[2];  //todo 一般在can_receive.c中定义，cab_receive.h中extern
+motor_measure_t motor_2006_dart1[3];    //motor_measure_t motor_20061[3]  不用dart1后缀
 motor_measure_t motor_6020_dart1[2];
 
 extern RC_ctrl_t rc_ctrl;
@@ -26,13 +33,13 @@ extern fp32 INS_gyro[3];
 extern fp32 INS_quat[4];
 
 int16_t goal_ecd_drive;//推动电机复位目标值
-int32_t get_position;//当前推弹电机的ecd值
-float up_speed;
-int16_t goal_ecd_thrust;//推弹单机复位目标值
-
-fp32 angle_turn[8];
+int32_t get_position;//当前推弹电机的ecd值  //todo 已经写在launcher1.R.motor_measure->total_ecd;
+float up_speed;  //todo 写在pid结构体中
+int16_t goal_ecd_thrust;//推弹单机复位目标值  //todo 目标值统一用set改成  ,后面扳机的ecd要转换成位移值，先暂时用ecd，
+                                           // int16_t thrust_ecd_set[4] 每一发表的扳机位置都不同
+fp32 angle_turn[8];    //todo 统一 电机_参数 比如 turn_motor_angle_set
 fp32 angle_thrust[2];
-fp32 angle_goal[2];//0表示前哨站的角度,1表示基地的角度
+fp32 angle_goal[2];//0表示前哨站的角度,1表示基地的角度  //todo 数组索引定义一个枚举
 uint16_t ecd_trigger[2];//0表示前哨站位置,1表示基地位置
 
 /*    函数及声明    */
@@ -111,7 +118,7 @@ void dart_task(void const*pvParameters)
             }
 
         }
-
+        //todo can发送函数
         vTaskDelay(2);
     }
 }
@@ -207,12 +214,13 @@ static void yaw_control()
 static void dart_back_handle()
 {
     get_position=launcher1.R.motor_measure->total_ecd;
-    up_speed=pid_calc(&launcher1.R.angle_p,
-                      get_position,
+    up_speed=pid_calc(&launcher1.R.angle_p,   //todo 用launcher1.L.speed_p.set
+                      get_position,   //todo 直接用launcher1.R.motor_measure->total_ecd; 即可
                       goal_ecd_drive);
     launcher1.R.give_current=(int16_t) pid_calc(&launcher1.R.speed_p,
                                                 launcher1.R.rpm_get,
                                                 up_speed);
+
     if(abs(get_position-goal_ecd_drive)<2)
     {
         flags.back_drive_ok=1;
@@ -299,7 +307,7 @@ static void dart_init()
     //模式初始化
     gimbal_dart.mode=DART_RELAX;
     gimbal_dart.last_mode=DART_RELAX;
-
+    //pid初始化
     pid_init(&launcher1.R.angle_p,
              DRIVE_ANGLE_MAX_OUT,
              DRIVE_ANGLE_MAX_IOUT,
@@ -402,7 +410,8 @@ static void dart_init()
 
 static void dart_mode_set()
 {
-    if(switch_is_down(rc_ctrl.rc.s[RC_s_L])&&switch_is_down(rc_ctrl.rc.s[RC_s_R]))
+    //todo 二元，三元操作符两边要加上一个空格
+    if(switch_is_down(rc_ctrl.rc.s[RC_s_L]) && switch_is_down(rc_ctrl.rc.s[RC_s_R]))
     {
         gimbal_dart.last_mode=gimbal_dart.mode;
         gimbal_dart.mode=DART_RELAX;
@@ -422,10 +431,23 @@ static void dart_mode_set()
     }
     if(gimbal_dart.mode==DART_BACK&&rc_ctrl.rc.ch[4]<-500)
     {
-        if(switch_is_up(rc_ctrl.rc.s[RC_s_L]))launcherable_num=2;
-        if(switch_is_down(rc_ctrl.rc.s[RC_s_L]))launcherable_num=1;
-        if(switch_is_up(rc_ctrl.rc.s[RC_s_R]))dart_goal=1;
-        if(switch_is_down(rc_ctrl.rc.s[RC_s_R]))dart_goal=2;
+        //todo 哪怕if后面只有一句语句，也要加上大括号
+        if(switch_is_up(rc_ctrl.rc.s[RC_s_L]))
+        {
+            launcherable_num=2;
+        }
+        if(switch_is_down(rc_ctrl.rc.s[RC_s_L]))
+        {
+            launcherable_num=1;
+        }
+        if(switch_is_up(rc_ctrl.rc.s[RC_s_R]))
+        {
+            dart_goal=1;
+        }
+        if(switch_is_down(rc_ctrl.rc.s[RC_s_R]))
+        {
+            dart_goal=2;
+        }
         if(launcherable_num>0&&dart_goal>0)
         {
             gimbal_dart.last_mode=gimbal_dart.mode;

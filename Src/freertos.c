@@ -162,14 +162,14 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(cali, calibrate_task, osPriorityNormal, 0, 512);
     calibrate_tast_handle = osThreadCreate(osThread(cali), NULL);
 
-    osThreadDef(ChassisTask, chassis_task, osPriorityAboveNormal, 0, 512);
-    chassisTaskHandle = osThreadCreate(osThread(ChassisTask), NULL);
+//    osThreadDef(ChassisTask, chassis_task, osPriorityAboveNormal, 0, 512);
+//    chassisTaskHandle = osThreadCreate(osThread(ChassisTask), NULL);
 
     osThreadDef(UIPaintTask, UI_paint_task,osPriorityNormal,0,256);
     UI_task_handle= osThreadCreate(osThread(UIPaintTask),NULL);
 
-    osThreadDef(gimbalTask, gimbal_task, osPriorityHigh, 0, 512);
-    gimbalTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
+//    osThreadDef(gimbalTask, gimbal_task, osPriorityHigh, 0, 512);
+//    gimbalTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
 
     osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 1024);
     imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);

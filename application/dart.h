@@ -4,6 +4,7 @@
 #include "PID.h"
 #include "remote.h"
 #include "AHRS.h"
+#include "stdbool.h" //todo 引入了bool类型
 
 #define DART_TASK_INIT_TIME 201
 
@@ -108,7 +109,7 @@ enum Fire_Mode{
 struct Launch_t{
     enum Fire_Mode mode;
     enum Fire_Mode last_mode;
-    motor_3508_t R;
+    motor_3508_t R; //todo 改成push_motor_r
     motor_3508_t L;
 
     motor_6020_t turn_motor;//换弹电机
@@ -117,7 +118,7 @@ struct Launch_t{
 struct Gimbal_t{
     enum Dart_Mode mode;
     enum Dart_Mode last_mode;
-    motor_6020_t yaw;//yaw轴电机
+    motor_6020_t yaw;//yaw轴电机  //rodo 改成motor_yaw
 };
 
 struct Thrust_t{
@@ -126,7 +127,8 @@ struct Thrust_t{
     motor_2006_t trigger_motor;//扳机移动
 };
 
-struct All_Flag
+struct All_Flag  //todo 改成bool吧 并且改成枚举
+                    // bool is_back_drive_ok  复制用ture 和 false
 {
     uint8_t back_drive_ok;
     uint8_t turn_angle;
@@ -138,6 +140,7 @@ struct All_Flag
     uint8_t back_ok;
     uint8_t trigger_move_ok;
 };
+
 
 
 
