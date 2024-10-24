@@ -110,13 +110,11 @@ struct Launch_t{
     enum Fire_Mode last_mode;
     motor_3508_t R;
     motor_3508_t L;
-    fp32 relative_angle_get_drive;
-    fp32 relative_angle_set_drive;
 
     motor_6020_t turn_motor;//换弹电机
 };
 
-struct Yaw_t{
+struct Gimbal_t{
     enum Dart_Mode mode;
     enum Dart_Mode last_mode;
     motor_6020_t yaw;//yaw轴电机

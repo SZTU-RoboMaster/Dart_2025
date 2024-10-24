@@ -30,6 +30,7 @@
 #include "Calibrate.h"
 #include "chassis.h"
 #include "Gimbal.h"
+#include "dart.h"
 //#include "detect_task.h"
 #include "Gimbal.h"
 //#include "INS_task.h"
@@ -60,6 +61,7 @@ osThreadId servo_task_handle;
 osThreadId UI_task_handle;
 osThreadId usb_task_handle;
 osThreadId decode_task_handle;
+osThreadId dartTaskHandle;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -171,6 +173,9 @@ void MX_FREERTOS_Init(void) {
 
     osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 1024);
     imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
+
+    osThreadDef(dartTask, dart_task, osPriorityHigh, 0, 512);
+    dartTaskHandle = osThreadCreate(osThread(dartTask), NULL);
 
 //    osThreadDef(refereeTask,referee_task,osPriorityHigh,0,256);
 //    refereeTaskHandle = osThreadCreate(osThread(refereeTask), NULL);
