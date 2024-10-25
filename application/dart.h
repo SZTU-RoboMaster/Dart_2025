@@ -106,7 +106,7 @@ enum Fire_Mode{
 struct Launch_t{
     enum Fire_Mode mode;
     enum Fire_Mode last_mode;
-    motor_3508_t push_motor_r; //todo 改成push_motor_r
+    motor_3508_t push_motor_r;
     motor_3508_t push_motor_l;
 
     motor_6020_t turn_motor;//换弹电机
@@ -115,7 +115,7 @@ struct Launch_t{
 struct Gimbal_t{
     enum Dart_Mode mode;
     enum Dart_Mode last_mode;
-    motor_6020_t yaw;//yaw轴电机  //rodo 改成motor_yaw
+    motor_6020_t yaw;//yaw轴电机  //todo 改成motor_yaw
 };
 
 struct Thrust_t{
@@ -124,9 +124,9 @@ struct Thrust_t{
     motor_2006_t trigger_motor;//扳机移动
 };
 
-struct All_Flag  //todo 改成bool吧 并且改成枚举 //没太懂是什么意思
+struct All_Flag
 {
-                    // bool is_back_drive_ok  复制用ture 和 false
+
     bool is_back_drive_ok;
     //bool is_turn_angle
     bool is_turn_angle_ok;

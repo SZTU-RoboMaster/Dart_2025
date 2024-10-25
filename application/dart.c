@@ -6,24 +6,21 @@
 #include "protocol_shaob.h"
 #include "stdlib.h"
 
-uint8_t direction=0;    //todo 在哪里用到了，如果未用到，可以删掉 //扳机运动的方向,还没来得及写
+uint8_t direction=0;
 uint8_t num_launched=0;//飞镖已发射数目
 uint8_t dart_goal;//飞镖目标,1为前哨站,2为基地
 
 enum Dart_goal{
     GOAL_FRONT_STATION=1,//前哨站
     GOAL_BASE_STATION//基地
-    }; //todo 改成枚举是不是更易懂
+    };
 
 uint8_t launcherable_num;//飞镖可发射数目1为两发,2为四发
-struct Launch_t launcher_dart;  //todo 改成launcher //之前的launcher文件里里面有launcher,所以改成了launcher1,为了区分现在改成launcher_dart
+struct Launch_t launcher_dart;
 struct Gimbal_t gimbal_dart;
 struct Thrust_t thrust_motor;
-struct All_Flag flags;  //todo 标志位一般用枚举
+struct All_Flag flags;
 
-//motor_measure_t motor_35081[2];  //todo 一般在can_receive.c中定义，cab_receive.h中extern
-//motor_measure_t motor_20061[3];    //motor_measure_t motor_20061[3]  不用dart1后缀
-//motor_measure_t motor_60201[2];
 
 extern RC_ctrl_t rc_ctrl;
 extern Eulr_t Eulr;
@@ -32,14 +29,12 @@ extern fp32 INS_gyro[3];
 extern fp32 INS_quat[4];
 
 int16_t goal_ecd_drive;//推动电机复位目标值
-//int32_t get_position;//当前推弹电机的ecd值  //todo 已经写在launcher.R.motor_measure->total_ecd;
-//float up_speed;  //todo 写在pid结构体中
 int16_t goal_ecd_thrust;//推弹单机复位目标值  //todo 目标值统一用set改成  ,后面扳机的ecd要转换成位移值，先暂时用ecd，
 //int16_t trigger_ecd_set[4];                // int16_t thrust_ecd_set[4] 每一发表的扳机位置都不同 //知道位置不同,但是不知道为什么
-fp32 turn_motor_angle_set[8];    //todo 统一 电机_参数 比如 turn_motor_angle_set
+fp32 turn_motor_angle_set[8];
 int8_t turn_angle=0;
 fp32 thrust_motor_angle_set[2];
-fp32 angle_goal[2];//0表示前哨站的角度,1表示基地的角度  //todo 数组索引定义一个枚举
+fp32 angle_goal[2];//0表示前哨站的角度,1表示基地的角度
 uint16_t ecd_trigger[2];//0表示前哨站位置,1表示基地位置
 
 /*    函数及声明    */
@@ -224,8 +219,8 @@ static void yaw_control()
 static void dart_back_handle()
 {
     //get_position=launcher_dart.push_motor_r.motor_measure->total_ecd;
-    launcher_dart.push_motor_r.speed_p.set=pid_calc(&launcher_dart.push_motor_r.angle_p,   //todo 用launcher.push_motor_l.speed_p.set
-                      launcher_dart.push_motor_r.motor_measure->total_ecd,   //todo 直接用launcher.push_motor_r.motor_measure->total_ecd; 即可
+    launcher_dart.push_motor_r.speed_p.set=pid_calc(&launcher_dart.push_motor_r.angle_p,
+                      launcher_dart.push_motor_r.motor_measure->total_ecd,
                       goal_ecd_drive);
     launcher_dart.push_motor_r.give_current=(int16_t) pid_calc(&launcher_dart.push_motor_r.speed_p,
                                                 launcher_dart.push_motor_r.rpm_get,
@@ -420,7 +415,7 @@ static void dart_init()
 
 static void dart_mode_set()
 {
-    //todo 二元，三元操作符两边要加上一个空格
+
     if(switch_is_down(rc_ctrl.rc.s[RC_s_L]) && switch_is_down(rc_ctrl.rc.s[RC_s_R]))
     {
         gimbal_dart.last_mode=gimbal_dart.mode;
@@ -441,7 +436,7 @@ static void dart_mode_set()
     }
     if(gimbal_dart.mode==DART_BACK && rc_ctrl.rc.ch[4]<-500)
     {
-        //todo 哪怕if后面只有一句语句，也要加上大括号
+
         if(switch_is_up(rc_ctrl.rc.s[RC_s_L]))
         {
             launcherable_num=2;
