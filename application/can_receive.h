@@ -150,6 +150,10 @@ extern motor_measure_t motor_yaw_measure;
 extern motor_measure_t motor_pitch_measure;
 extern motor_measure_t motor_2006_measure[3];
 
+extern motor_measure_t motor_35081[2];
+extern motor_measure_t motor_20061[3];
+extern motor_measure_t motor_60201[2];
+
 extern void CAN_cmd_motor(CAN_TYPE can_type,can_msg_id_e CMD_ID,int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4);
 
 extern void CAN_cmd_chassis_rudder(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4);

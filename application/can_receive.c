@@ -43,6 +43,10 @@ motor_measure_t motor_yaw_measure;
 motor_measure_t motor_pitch_measure;
 motor_measure_t motor_turn_measure;
 
+motor_measure_t motor_35081[2];
+motor_measure_t motor_20061[3];
+motor_measure_t motor_60201[2];
+
 motor_measure_t motor_2006_measure[3];
 
 

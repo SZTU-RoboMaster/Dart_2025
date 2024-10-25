@@ -87,9 +87,6 @@
 #define THRUST_MOVE_SPEED_MAX_IOUT   1.0f
 
 /******************** extern *******************/
-extern motor_measure_t motor_3508_dart1[2];
-extern motor_measure_t motor_2006_dart1[3];
-extern motor_measure_t motor_6020_dart1[2];
 
 enum Dart_Mode{
     DART_RELAX=0,
@@ -109,8 +106,8 @@ enum Fire_Mode{
 struct Launch_t{
     enum Fire_Mode mode;
     enum Fire_Mode last_mode;
-    motor_3508_t R; //todo 改成push_motor_r
-    motor_3508_t L;
+    motor_3508_t push_motor_r; //todo 改成push_motor_r
+    motor_3508_t push_motor_l;
 
     motor_6020_t turn_motor;//换弹电机
 };
@@ -127,21 +124,32 @@ struct Thrust_t{
     motor_2006_t trigger_motor;//扳机移动
 };
 
-struct All_Flag  //todo 改成bool吧 并且改成枚举
-                    // bool is_back_drive_ok  复制用ture 和 false
+struct All_Flag  //todo 改成bool吧 并且改成枚举 //没太懂是什么意思
 {
-    uint8_t back_drive_ok;
-    uint8_t turn_angle;
-    uint8_t turn_angle_ok;
-    uint8_t thrust_angle;
-    uint8_t thrust_angle_ok;
-    uint8_t thrust_move_ok;
-    uint8_t ready_ok;
-    uint8_t back_ok;
-    uint8_t trigger_move_ok;
+                    // bool is_back_drive_ok  复制用ture 和 false
+    bool is_back_drive_ok;
+    //bool is_turn_angle
+    bool is_turn_angle_ok;
+    //bool thrust_angle;
+    bool is_thrust_angle_ok;
+    bool is_thrust_move_ok;
+    bool is_ready_ok;
+    bool is_back_ok;
+    bool is_trigger_move_ok;
+    bool is_ready_trigger_move_ok;
 };
 
+enum trigger_angle
+{
+    front=0,//前哨站
+    base//基地
+};
 
+enum thrust_motor_angle_mode
+{
+    free_mode=0,
+    work_mode
+};
 
 
 extern void dart_task(void const*pvParameters);
