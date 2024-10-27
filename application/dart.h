@@ -4,7 +4,7 @@
 #include "PID.h"
 #include "remote.h"
 #include "AHRS.h"
-#include "stdbool.h" //todo 引入了bool类型
+#include "stdbool.h"
 
 #define DART_TASK_INIT_TIME 201
 
@@ -115,7 +115,7 @@ struct Launch_t{
 struct Gimbal_t{
     enum Dart_Mode mode;
     enum Dart_Mode last_mode;
-    motor_6020_t yaw;//yaw轴电机  //todo 改成motor_yaw
+    motor_6020_t motor_yaw;//yaw轴电机  //todo 改成motor_yaw
 };
 
 struct Thrust_t{
@@ -136,7 +136,9 @@ struct All_Flag
     bool is_ready_ok;
     bool is_back_ok;
     bool is_trigger_move_ok;
-    bool is_ready_trigger_move_ok;
+    bool is_ready1_trigger_move_ok;
+    bool is_ready1_drive_ok;
+    bool is_ready1_trigger_on_ok;
 };
 
 enum trigger_angle
@@ -149,6 +151,11 @@ enum thrust_motor_angle_mode
 {
     free_mode=0,
     work_mode
+};
+
+enum Dart_goal{
+    GOAL_FRONT_STATION=1,//前哨站
+    GOAL_BASE_STATION//基地
 };
 
 
