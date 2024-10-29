@@ -3,6 +3,7 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/application/Chassis.c" charset="GBK" />
     <file url="file://$PROJECT_DIR$/application/Detection.c" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/application/dart.c" charset="GBK" />
     <file url="PROJECT" charset="GBK" />
   </component>
 </project>
