@@ -84,6 +84,26 @@ float pid_calc(pid_t *pid, float get, float set)
 
     return pid->out;
 }
+
+float pid_calc1(pid_t *pid,float get,float set)
+{
+    pid->get=get;
+    pid->set=set;
+    pid->err[NOW]=fabs(set-get)*(set-get)/2;
+
+    pid->pout = pid->p * pid->err[NOW];
+    pid->iout += pid->i * pid->err[NOW];
+    pid->dout = pid->d * (pid->err[NOW] - pid->err[LAST]);
+
+    abs_limit(&(pid->iout), pid->integral_limit);
+    pid->out = pid->pout + pid->iout + pid->dout;
+    abs_limit(&(pid->out), pid->max_output);
+
+    pid->err[LAST]  = pid->err[NOW];
+
+    return pid->out;
+}
+
 float pid_calc_my(pid_t *pid, float get, float set)
 {
     pid->get = get;
@@ -123,6 +143,25 @@ float pid_loop_calc(pid_t *pid,float get,float set,float max_value,float min_val
     }
 
 }
+
+float pid_loop1_calc(pid_t *pid,float get,float set,float max_value,float min_value)
+{
+    float gap,mid;
+    mid=(max_value-min_value)/2;
+    gap=set-get;
+    if(gap>=mid){
+        gap-=max_value-min_value;
+        return pid_calc1(pid,-gap,0);
+    }
+    else if(gap<=-mid){
+        gap+=max_value-min_value;
+        return pid_calc1(pid,-gap,0);
+    }
+    else{
+        return pid_calc1(pid,get,set);
+    }
+}
+
 
 /**
   * @brief     PID 参数复位函数

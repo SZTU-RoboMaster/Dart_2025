@@ -86,7 +86,6 @@ void CAN_cmd_motor(CAN_TYPE can_type,can_msg_id_e CMD_ID,int16_t motor1, int16_t
 
 }
 
-
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     CAN_RxHeaderTypeDef rx_header;
 
@@ -98,7 +97,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
         switch (rx_header.StdId) {
 
 
-            case CAN_CHASSIS_3508_MOTOR_1: get_motor_measure(&motor_3508_dart[0], rx_data);
+            case CAN_THRUST_MOVE_2006: get_motor_measure(&motor_2006[1], rx_data);
+                get_motor_round_cnt(motor_2006[1]);
 
                 break;
             case CAN_CHASSIS_3508_MOTOR_2: get_motor_measure(&motor_3508_dart[1], rx_data);
@@ -107,7 +107,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
             case CAN_CHASSIS_3508_MOTOR_3: get_motor_measure(&motor_3508_dart[2], rx_data);
 
                 break;
-            case CAN_CHASSIS_3508_MOTOR_4: get_motor_measure(&motor_3508_dart[3], rx_data);
+            case CAN_THRUST_ANGLE_2006: get_motor_measure(&motor_2006[0], rx_data);
+                get_motor_round_cnt(motor_2006[0]);
                 break;
 
             default: {
@@ -117,14 +118,14 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     }
     if (hcan == &hcan2) {
         switch (rx_header.StdId){
-            case CAN_TURN_6020: get_motor_measure(&motor_turn_measure, rx_data);  //»»µ¯
+//            case CAN_TURN_6020: get_motor_measure(&motor_turn_measure, rx_data);  //»»µ¯
+//
+//                break;
 
+            case CAN_6020_YAW: get_motor_measure(&motor_6020[0], rx_data);
                 break;
 
-            case CAN_GIMBAL_6020_YAW: get_motor_measure(&motor_yaw_measure, rx_data);
-                break;
-
-            case CAN_GIMBAL_6020_PITCH: get_motor_measure(&motor_pitch_measure, rx_data);
+            case CAN_6020_TURN: get_motor_measure(&motor_6020[1], rx_data);
                 break;
 
             case  CAN_UP_2006: get_motor_measure(&motor_2006_measure[0], rx_data);

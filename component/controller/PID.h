@@ -98,5 +98,5 @@ extern float pid_calc(pid_t *pid, float get, float set);
 extern float pid_calc_balance(pid_t *pid, float get, float set,float gyro_y);
 float pid_calc_my(pid_t *pid, float get, float set);
 extern float pid_loop_calc(pid_t *pid,float get,float set,float max_value,float min_value);
-
+float pid_loop1_calc(pid_t *pid,float get,float set,float max_value,float min_value);
 #endif

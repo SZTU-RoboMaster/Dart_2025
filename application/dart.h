@@ -9,30 +9,30 @@
 #define DART_TASK_INIT_TIME 201
 
 //YAW轴角度环PID
-#define YAW_ANGLE_PID_KP     1.0f
-#define YAW_ANGLE_PID_KI     1.0f
-#define YAW_ANGLE_PID_KD     1.0f
-#define YAW_ANGLE_MAX_OUT    1.0f
-#define YAW_ANGLE_MAX_IOUT   1.0f
+#define YAW_ANGLE_PID_KP     8.0f
+#define YAW_ANGLE_PID_KI     0.0f
+#define YAW_ANGLE_PID_KD     70.0f
+#define YAW_ANGLE_MAX_OUT    3000.0f
+#define YAW_ANGLE_MAX_IOUT   3000.0f
 //YAW轴速度环PID
-#define YAW_SPEED_PID_KP     1.0f
-#define YAW_SPEED_PID_KI     1.0f
-#define YAW_SPEED_PID_KD     1.0f
-#define YAW_SPEED_MAX_OUT    1.0f
-#define YAW_SPEED_MAX_IOUT   1.0f
+#define YAW_SPEED_PID_KP     140.0f
+#define YAW_SPEED_PID_KI     0.0f
+#define YAW_SPEED_PID_KD     35.0f
+#define YAW_SPEED_MAX_OUT    25000.0f
+#define YAW_SPEED_MAX_IOUT   6000.0f
 
 //换弹电机角度PID
-#define TURN_ANGLE_PID_KP     1.0f
-#define TURN_ANGLE_PID_KI     1.0f
-#define TURN_ANGLE_PID_KD     1.0f
-#define TURN_ANGLE_MAX_OUT    1.0f
-#define TURN_ANGLE_MAX_IOUT   1.0f
+#define TURN_ANGLE_PID_KP     27.0f//5
+#define TURN_ANGLE_PID_KI     0.7f//0.1
+#define TURN_ANGLE_PID_KD     120.0f//130
+#define TURN_ANGLE_MAX_OUT    360.0f
+#define TURN_ANGLE_MAX_IOUT   100.0f
 //换弹电机速度PID
-#define TURN_SPEED_PID_KP     1.0f
-#define TURN_SPEED_PID_KI     1.0f
-#define TURN_SPEED_PID_KD     1.0f
-#define TURN_SPEED_MAX_OUT    1.0f
-#define TURN_SPEED_MAX_IOUT   1.0f
+#define TURN_SPEED_PID_KP     10.0f//80
+#define TURN_SPEED_PID_KI     0.0f//0.02
+#define TURN_SPEED_PID_KD     0.0f//55
+#define TURN_SPEED_MAX_OUT    20000.0f
+#define TURN_SPEED_MAX_IOUT   500.0f
 
 //推动电机角度PID
 #define DRIVE_ANGLE_PID_KP     100.0f
@@ -61,11 +61,11 @@
 #define TRIGGER_MOVE_SPEED_MAX_IOUT   1.0f
 
 //推弹角度电机角度PID
-#define THRUST_ANGLE_ANGLE_PID_KP     1.0f
-#define THRUST_ANGLE_ANGLE_PID_KI     1.0f
-#define THRUST_ANGLE_ANGLE_PID_KD     1.0f
-#define THRUST_ANGLE_ANGLE_MAX_OUT    1.0f
-#define THRUST_ANGLE_ANGLE_MAX_IOUT   1.0f
+#define THRUST_ANGLE_ANGLE_PID_KP     0.0f
+#define THRUST_ANGLE_ANGLE_PID_KI     0.0f
+#define THRUST_ANGLE_ANGLE_PID_KD     0.0f
+#define THRUST_ANGLE_ANGLE_MAX_OUT    0.0f
+#define THRUST_ANGLE_ANGLE_MAX_IOUT   0.0f
 //推弹角度电机速度PID
 #define THRUST_ANGLE_SPEED_PID_KP     1.0f
 #define THRUST_ANGLE_SPEED_PID_KI     1.0f
@@ -74,17 +74,19 @@
 #define THRUST_ANGLE_SPEED_MAX_IOUT   1.0f
 
 //推弹移动电机角度PID
-#define THRUST_MOVE_ANGLE_PID_KP     1.0f
-#define THRUST_MOVE_ANGLE_PID_KI     1.0f
-#define THRUST_MOVE_ANGLE_PID_KD     1.0f
-#define THRUST_MOVE_ANGLE_MAX_OUT    1.0f
-#define THRUST_MOVE_ANGLE_MAX_IOUT   1.0f
+#define THRUST_MOVE_ANGLE_PID_KP     3.0f
+#define THRUST_MOVE_ANGLE_PID_KI     0.0f
+#define THRUST_MOVE_ANGLE_PID_KD     34.0f
+#define THRUST_MOVE_ANGLE_MAX_OUT    3000.0f
+#define THRUST_MOVE_ANGLE_MAX_IOUT   80.0f
 //推弹移动电机速度PID
-#define THRUST_MOVE_SPEED_PID_KP     1.0f
-#define THRUST_MOVE_SPEED_PID_KI     1.0f
-#define THRUST_MOVE_SPEED_PID_KD     1.0f
-#define THRUST_MOVE_SPEED_MAX_OUT    1.0f
-#define THRUST_MOVE_SPEED_MAX_IOUT   1.0f
+#define THRUST_MOVE_SPEED_PID_KP     1.4f
+#define THRUST_MOVE_SPEED_PID_KI     0.0f
+#define THRUST_MOVE_SPEED_PID_KD     0.0f
+#define THRUST_MOVE_SPEED_MAX_OUT    3000.0f
+#define THRUST_MOVE_SPEED_MAX_IOUT   1000.0f
+
+#define YAW_BACK_ANGLE -9.448242f
 
 /******************** extern *******************/
 
