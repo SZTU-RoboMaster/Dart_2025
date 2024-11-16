@@ -161,9 +161,9 @@ static void gimbal_init(){
 
 
 
-    first_order_filter_init(&pitch_first_order_set, 0.f, (const fp32 *) 500);
-    first_order_filter_init(&pitch_current_first_order_set, 5, (const fp32 *) 30);
-    first_order_filter_init(&yaw_first_order_set, 5, (const fp32 *) 30);
+//    first_order_filter_init(&pitch_first_order_set, 0.f,  500);
+//    first_order_filter_init(&pitch_current_first_order_set, 5,  30);
+    first_order_filter_init(&yaw_first_order_set, 5,  30);
     //初始化时 云台设为未回中状态
     gimbal.yaw_is_back=0;
     gimbal.pitch_is_back=0;

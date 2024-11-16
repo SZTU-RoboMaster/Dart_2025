@@ -179,8 +179,8 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(dartTask, dart_task, osPriorityHigh, 0, 512);
     dartTaskHandle = osThreadCreate(osThread(dartTask), NULL);
 
-    osThreadDef(laliTask, lali_task, osPriorityHigh, 0, 512);
-    dartTaskHandle = osThreadCreate(osThread(laliTask), NULL);
+//    osThreadDef(laliTask, lali_task, osPriorityHigh, 0, 512);
+//    dartTaskHandle = osThreadCreate(osThread(laliTask), NULL);
 
 //    osThreadDef(refereeTask,referee_task,osPriorityHigh,0,256);
 //    refereeTaskHandle = osThreadCreate(osThread(refereeTask), NULL);

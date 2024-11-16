@@ -9,15 +9,15 @@
 #define DART_TASK_INIT_TIME 201
 
 //YAW轴角度环PID
-#define YAW_ANGLE_PID_KP     8.0f
-#define YAW_ANGLE_PID_KI     0.0f
-#define YAW_ANGLE_PID_KD     70.0f
+#define YAW_ANGLE_PID_KP     50.0f//8
+#define YAW_ANGLE_PID_KI     0.001f//0
+#define YAW_ANGLE_PID_KD     800.0f//235
 #define YAW_ANGLE_MAX_OUT    3000.0f
 #define YAW_ANGLE_MAX_IOUT   3000.0f
 //YAW轴速度环PID
-#define YAW_SPEED_PID_KP     140.0f
-#define YAW_SPEED_PID_KI     0.0f
-#define YAW_SPEED_PID_KD     35.0f
+#define YAW_SPEED_PID_KP     150.0f//120
+#define YAW_SPEED_PID_KI     0.0f//0.0f
+#define YAW_SPEED_PID_KD     0.0f//30
 #define YAW_SPEED_MAX_OUT    25000.0f
 #define YAW_SPEED_MAX_IOUT   6000.0f
 
@@ -31,21 +31,21 @@
 #define TURN_SPEED_PID_KP     10.0f//80
 #define TURN_SPEED_PID_KI     0.0f//0.02
 #define TURN_SPEED_PID_KD     0.0f//55
-#define TURN_SPEED_MAX_OUT    20000.0f
+#define TURN_SPEED_MAX_OUT    25000.0f
 #define TURN_SPEED_MAX_IOUT   500.0f
 
 //推动电机角度PID
-#define DRIVE_ANGLE_PID_KP     100.0f
-#define DRIVE_ANGLE_PID_KI     100.0f
-#define DRIVE_ANGLE_PID_KD     100.0f
-#define DRIVE_ANGLE_MAX_OUT    100.0f
-#define DRIVE_ANGLE_MAX_IOUT   100.0f
+#define DRIVE_ANGLE_PID_KP     0.0f
+#define DRIVE_ANGLE_PID_KI     0.0f
+#define DRIVE_ANGLE_PID_KD     0.0f
+#define DRIVE_ANGLE_MAX_OUT    3000.0f
+#define DRIVE_ANGLE_MAX_IOUT   3000.0f
 //推动电机速度PID
-#define DRIVE_SPEED_PID_KP     1.0f
-#define DRIVE_SPEED_PID_KI     1.0f
-#define DRIVE_SPEED_PID_KD     1.0f
-#define DRIVE_SPEED_MAX_OUT    1.0f
-#define DRIVE_SPEED_MAX_IOUT   1.0f
+#define DRIVE_SPEED_PID_KP     0.0f//10
+#define DRIVE_SPEED_PID_KI     0.0f
+#define DRIVE_SPEED_PID_KD     0.0f
+#define DRIVE_SPEED_MAX_OUT    16000.0f
+#define DRIVE_SPEED_MAX_IOUT   6000.0f
 
 //扳机移动电机角度PID
 #define TRIGGER_MOVE_ANGLE_PID_KP     1.0f
@@ -83,7 +83,7 @@
 #define THRUST_MOVE_SPEED_PID_KP     1.4f
 #define THRUST_MOVE_SPEED_PID_KI     0.0f
 #define THRUST_MOVE_SPEED_PID_KD     0.0f
-#define THRUST_MOVE_SPEED_MAX_OUT    3000.0f
+#define THRUST_MOVE_SPEED_MAX_OUT    9000.0f
 #define THRUST_MOVE_SPEED_MAX_IOUT   1000.0f
 
 #define YAW_BACK_ANGLE -9.448242f

@@ -93,22 +93,18 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 
     HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, rx_data);
 
-    if (hcan == &hcan1) {
+    if (hcan == &hcan2) {
         switch (rx_header.StdId) {
-
-
-            case CAN_THRUST_MOVE_2006: get_motor_measure(&motor_2006[1], rx_data);
-                get_motor_round_cnt(motor_2006[1]);
-
+            case CAN_6020_YAW: get_motor_measure(&motor_6020[0], rx_data);
                 break;
-            case CAN_CHASSIS_3508_MOTOR_2: get_motor_measure(&motor_3508_dart[1], rx_data);
-
+            case CAN_2006_TRIGGER: get_motor_measure(&motor_2006[2], rx_data);
+                get_motor_round_cnt(motor_2006[2]);
                 break;
-            case CAN_CHASSIS_3508_MOTOR_3: get_motor_measure(&motor_3508_dart[2], rx_data);
-
+            case CAN_3508_DRIVE_RIGHT: get_motor_measure(&motor_3508[0], rx_data);
+                get_motor_round_cnt(motor_3508[0]);
                 break;
-            case CAN_THRUST_ANGLE_2006: get_motor_measure(&motor_2006[0], rx_data);
-                get_motor_round_cnt(motor_2006[0]);
+            case CAN_3508_DRIVE_LEFT: get_motor_measure(&motor_3508[1], rx_data);
+                get_motor_round_cnt(motor_3508[1]);
                 break;
 
             default: {
@@ -116,21 +112,23 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
             }
         }
     }
-    if (hcan == &hcan2) {
+    if (hcan == &hcan1) {
         switch (rx_header.StdId){
 //            case CAN_TURN_6020: get_motor_measure(&motor_turn_measure, rx_data);  //»»µ¯
 //
 //                break;
 
-            case CAN_6020_YAW: get_motor_measure(&motor_6020[0], rx_data);
+            case CAN_2006_THRUST_ANGLE: get_motor_measure(&motor_2006[0], rx_data);
+                get_motor_round_cnt(motor_2006[0]);
                 break;
 
-            case CAN_6020_TURN: get_motor_measure(&motor_6020[1], rx_data);
+            case CAN_2006_THRUST_MOVE: get_motor_measure(&motor_2006[1], rx_data);
+                get_motor_round_cnt(motor_2006[1]);
                 break;
-
-            case  CAN_UP_2006: get_motor_measure(&motor_2006_measure[0], rx_data);
-                get_motor_round_cnt(motor_2006_measure[0]);
-                break;
+//
+//            case  CAN_UP_2006: get_motor_measure(&motor_2006_measure[0], rx_data);
+//                get_motor_round_cnt(motor_2006_measure[0]);
+//                break;
 
             default: {
                 break;

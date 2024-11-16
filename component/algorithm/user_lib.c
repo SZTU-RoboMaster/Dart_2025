@@ -85,10 +85,10 @@ float my_pow(float a)
   * @param[in]      ÂË²¨²ÎÊı
   * @retval         ·µ»Ø¿Õ
   */
-void first_order_filter_init(first_order_filter_type_t *first_order_filter_type, fp32 frame_period, const fp32 num[1])
+void first_order_filter_init(first_order_filter_type_t *first_order_filter_type, fp32 frame_period,  fp32 num)
 {
     first_order_filter_type->frame_period = frame_period;
-    first_order_filter_type->num[0] = num[0];
+    first_order_filter_type->num[0] = num;
     first_order_filter_type->input = 0.0f;
     first_order_filter_type->out = 0.0f;
 }

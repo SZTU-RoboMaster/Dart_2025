@@ -29,7 +29,7 @@ extern float my_pow(float number);
 //斜波函数计算
 //void ramp_calc(ramp_function_source_t *ramp_source_type, fp32 input);
 //一阶滤波初始化
-extern void first_order_filter_init(first_order_filter_type_t *first_order_filter_type, fp32 frame_period, const fp32 num[1]);
+extern void first_order_filter_init(first_order_filter_type_t *first_order_filter_type, fp32 frame_period,  fp32 num);
 //一阶滤波计算
 extern void first_order_filter_cali(first_order_filter_type_t *first_order_filter_type, fp32 input);
 //绝对限制
@@ -47,6 +47,7 @@ extern int16_t int16_constrain(int16_t Value, int16_t minValue, int16_t maxValue
 extern fp32 loop_fp32_constrain(fp32 Input, fp32 minValue, fp32 maxValue);
 //角度 °限幅 180 ~ -180
 extern fp32 theta_format(fp32 Ang);
+void abs_limit(fp32 *num, fp32 Limit);
 
 //弧度格式化为-PI~PI
 #define rad_format(Ang) loop_fp32_constrain((Ang), -PI, PI)
