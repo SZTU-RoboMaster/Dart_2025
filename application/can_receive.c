@@ -95,8 +95,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 
     if (hcan == &hcan2) {
         switch (rx_header.StdId) {
-            case CAN_6020_YAW: get_motor_measure(&motor_6020[0], rx_data);
-                break;
             case CAN_2006_TRIGGER: get_motor_measure(&motor_2006[2], rx_data);
                 get_motor_round_cnt(motor_2006[2]);
                 break;
@@ -114,10 +112,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     }
     if (hcan == &hcan1) {
         switch (rx_header.StdId){
-//            case CAN_TURN_6020: get_motor_measure(&motor_turn_measure, rx_data);  //»»µ¯
-//
-//                break;
-
+            case CAN_6020_YAW: get_motor_measure(&motor_6020[0], rx_data);
+                break;
             case CAN_2006_THRUST_ANGLE: get_motor_measure(&motor_2006[0], rx_data);
                 get_motor_round_cnt(motor_2006[0]);
                 break;
