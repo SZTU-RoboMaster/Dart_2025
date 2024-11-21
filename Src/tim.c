@@ -356,6 +356,7 @@ void MX_TIM8_Init(void)
   /* USER CODE END TIM8_Init 2 */
   HAL_TIM_MspPostInit(&htim8);
 
+
 }
 /* TIM10 init function */
 void MX_TIM10_Init(void)

@@ -6,6 +6,7 @@
 #include "protocol_shaob.h"
 #include "stdlib.h"
 #include "user_lib.h"
+#include "tim.h"
 
 uint8_t direction=0;
 uint8_t num_launched=0;//飞镖已发射数目
@@ -107,10 +108,29 @@ void dart_task(void const*pvParameters)
 
     dart_init();
     dart_reset();
+
+
     while(1)
     {
         dart_data_update();
         dart_mode_set();
+
+                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_1, 500);
+                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_2, 500);
+                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_3, 500);
+                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, 500);
+                __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 500);
+                __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 500);
+                __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 500);
+        HAL_Delay(1000);
+                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_1, 2000);
+                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_2, 2000);
+                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_3, 2000);
+                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, 2000);
+                __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 2000);
+                __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 2000);
+                __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 2000);
+        HAL_Delay(1000);
 
         switch(gimbal_dart.mode)
         {
