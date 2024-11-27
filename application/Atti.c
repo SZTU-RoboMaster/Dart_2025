@@ -666,51 +666,51 @@ static void imu_cmd_spi_dma(void)
 }
 
 
-void DMA2_Stream2_IRQHandler(void)
-{
-
-    if(__HAL_DMA_GET_FLAG(hspi1.hdmarx, __HAL_DMA_GET_TC_FLAG_INDEX(hspi1.hdmarx)) != RESET)
-    {
-        __HAL_DMA_CLEAR_FLAG(hspi1.hdmarx, __HAL_DMA_GET_TC_FLAG_INDEX(hspi1.hdmarx));
-
-        //gyro read over
-        //陀螺仪读取完毕
-        if(gyro_update_flag & (1 << IMU_SPI_SHFITS))
-        {
-            gyro_update_flag &= ~(1 << IMU_SPI_SHFITS);
-            gyro_update_flag |= (1 << IMU_UPDATE_SHFITS);
-
-            HAL_GPIO_WritePin(CS1_GYRO_GPIO_Port, CS1_GYRO_Pin, GPIO_PIN_SET);
-
-        }
-
-        //accel read over
-        //加速度计读取完毕
-        if(accel_update_flag & (1 << IMU_SPI_SHFITS))
-        {
-            accel_update_flag &= ~(1 << IMU_SPI_SHFITS);
-            accel_update_flag |= (1 << IMU_UPDATE_SHFITS);
-
-            HAL_GPIO_WritePin(CS1_ACCEL_GPIO_Port, CS1_ACCEL_Pin, GPIO_PIN_SET);
-        }
-        //temperature read over
-        //温度读取完毕
-        if(accel_temp_update_flag & (1 << IMU_SPI_SHFITS))
-        {
-            accel_temp_update_flag &= ~(1 << IMU_SPI_SHFITS);
-            accel_temp_update_flag |= (1 << IMU_UPDATE_SHFITS);
-
-            HAL_GPIO_WritePin(CS1_ACCEL_GPIO_Port, CS1_ACCEL_Pin, GPIO_PIN_SET);
-        }
-
-        imu_cmd_spi_dma();
-
-        if(gyro_update_flag & (1 << IMU_UPDATE_SHFITS))
-        {
-            gyro_update_flag &= ~(1 << IMU_UPDATE_SHFITS);
-            gyro_update_flag |= (1 << IMU_NOTIFY_SHFITS);
-            __HAL_GPIO_EXTI_GENERATE_SWIT(GPIO_PIN_0);
-        }
-    }
-}
+//void DMA2_Stream2_IRQHandler(void)
+//{
+//
+//    if(__HAL_DMA_GET_FLAG(hspi1.hdmarx, __HAL_DMA_GET_TC_FLAG_INDEX(hspi1.hdmarx)) != RESET)
+//    {
+//        __HAL_DMA_CLEAR_FLAG(hspi1.hdmarx, __HAL_DMA_GET_TC_FLAG_INDEX(hspi1.hdmarx));
+//
+//        //gyro read over
+//        //陀螺仪读取完毕
+//        if(gyro_update_flag & (1 << IMU_SPI_SHFITS))
+//        {
+//            gyro_update_flag &= ~(1 << IMU_SPI_SHFITS);
+//            gyro_update_flag |= (1 << IMU_UPDATE_SHFITS);
+//
+//            HAL_GPIO_WritePin(CS1_GYRO_GPIO_Port, CS1_GYRO_Pin, GPIO_PIN_SET);
+//
+//        }
+//
+//        //accel read over
+//        //加速度计读取完毕
+//        if(accel_update_flag & (1 << IMU_SPI_SHFITS))
+//        {
+//            accel_update_flag &= ~(1 << IMU_SPI_SHFITS);
+//            accel_update_flag |= (1 << IMU_UPDATE_SHFITS);
+//
+//            HAL_GPIO_WritePin(CS1_ACCEL_GPIO_Port, CS1_ACCEL_Pin, GPIO_PIN_SET);
+//        }
+//        //temperature read over
+//        //温度读取完毕
+//        if(accel_temp_update_flag & (1 << IMU_SPI_SHFITS))
+//        {
+//            accel_temp_update_flag &= ~(1 << IMU_SPI_SHFITS);
+//            accel_temp_update_flag |= (1 << IMU_UPDATE_SHFITS);
+//
+//            HAL_GPIO_WritePin(CS1_ACCEL_GPIO_Port, CS1_ACCEL_Pin, GPIO_PIN_SET);
+//        }
+//
+//        imu_cmd_spi_dma();
+//
+//        if(gyro_update_flag & (1 << IMU_UPDATE_SHFITS))
+//        {
+//            gyro_update_flag &= ~(1 << IMU_UPDATE_SHFITS);
+//            gyro_update_flag |= (1 << IMU_NOTIFY_SHFITS);
+//            __HAL_GPIO_EXTI_GENERATE_SWIT(GPIO_PIN_0);
+//        }
+//    }
+//}
 

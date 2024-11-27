@@ -7,7 +7,6 @@
 #include "stdlib.h"
 #include "user_lib.h"
 #include "tim.h"
-
 uint8_t direction=0;
 uint8_t num_launched=0;//飞镖已发射数目
 uint8_t dart_goal;//飞镖目标,1为前哨站,2为基地
@@ -27,16 +26,29 @@ extern fp32 INS_quat[4];
 int32_t init_ecd_trigger;//初始时候扳机的total_ecd
 int32_t init_ecd_drive_left;//初始时候推动左电机的total_ecd
 int32_t init_ecd_drive_right;//初始时候推动右电机的total_ecd
-int32_t init_ecd_thrust_move;//初始化推弹电机的total_ecd
-int32_t init_ecd_thrust_angle;
+int32_t init_ecd_thrust_move;//初始化推弹移动电机的total_ecd
+int32_t init_ecd_thrust_angle;//初始化推弹角度电机的total_ecd
+bool ready1_flag;
+fp32 ready1_set_drive_right_distance;
+fp32 ready1_set_drive_left_distance;
+
+bool ready2_load_flag;//确定上膛位置标志位
+bool ready2_goal_flag;//确定发射位置标志位
+bool ready2_set_flag;
+fp32 ready2_load_set_drive_right_distance;
+fp32 ready2_load_set_drive_left_distance;
+fp32 ready2_goal_set_drive_right_distance;
+fp32 ready2_goal_set_drive_left_distance;
+int16_t cnt;
 
 int16_t goal_ecd_loading_drive;//上膛位置的ecd
 int16_t goal_ecd_loading_thrust;//上弹时到达位置的ecd
-int16_t trigger_ecd_set[4];
+fp32 trigger_to_outposts_distance_set[4]={9,9,9,9};//到前哨站的距离
+fp32 trigger_to_base_distance_set[4]={9,9,9,9};//到基地的距离
 fp32 turn_motor_angle_set[6];//换弹电机角度数组
 int8_t turn_angle=0;//换弹电机角度数组索引
 fp32 thrust_motor_angle_set[2];//推弹电机角度数组
-fp32 angle_goal[2];//0表示前哨站的角度,1表示基地的角度
+fp32 yaw_angle_goal[2];//0表示前哨站的角度,1表示基地的角度
 int32_t ecd_trigger[2];//0表示前哨站位置,1表示基地位置
 bool trigger_move_down_l; //确定左拨杆放下面的标志位
 bool trigger_move_mid_l;  //确定左拨杆放中间的标志位
@@ -45,10 +57,12 @@ uint8_t begin_count1=1;
 
 int64_t time_now;//测试用
 uint8_t flag1=false;//测试用
-int16_t init_speed_thrust_move=-1200;//测试用
-int16_t init_speed_drive=1000;
+int16_t init_speed_thrust_move=-1500;//测试用
+int16_t init_speed_drive=900;
 int16_t init_speed_trigger=-4000;
 int16_t init_speed_thrust_angle=-500;
+fp32 dart_length=715;
+fp32 slide_length=75;
 
 //初始距离和当前距离
 fp32 get_trigger_distance;
@@ -72,6 +86,12 @@ fp32 back_drive_left_distance;
 fp32 back_drive_right_distance;
 fp32 back_thrust_move_distance;
 fp32 back_thrust_angle_angle;
+
+fp32 ready1_back_drive_left_distance;
+fp32 ready1_back_drive_right_distance;
+
+fp32 ready2_thrust_move_goal_distance;
+fp32 ready2_thrust_angle_goal_angle;
 
 
 /*    函数及声明    */
@@ -98,6 +118,8 @@ static fp32 trigger_distance_conversion(int32_t ecd);
 static fp32 drive_distance_conversion(int32_t ecd);
 static fp32 ecd_to_angle(int32_t ecd);
 static fp32 thrust_move_distance_conversion(int32_t ecd);
+static void steer_motor_control();
+static void set_load_drive_distance();
 
 /*      滤波      */
 first_order_filter_type_t filter_yaw_in;
@@ -108,29 +130,10 @@ void dart_task(void const*pvParameters)
 
     dart_init();
     dart_reset();
-
-
     while(1)
     {
         dart_data_update();
         dart_mode_set();
-
-                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_1, 500);
-                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_2, 500);
-                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_3, 500);
-                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, 500);
-                __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 500);
-                __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 500);
-                __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 500);
-        HAL_Delay(1000);
-                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_1, 2000);
-                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_2, 2000);
-                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_3, 2000);
-                __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, 2000);
-                __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_1, 2000);
-                __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_2, 2000);
-                __HAL_TIM_SetCompare(&htim8, TIM_CHANNEL_3, 2000);
-        HAL_Delay(1000);
 
         switch(gimbal_dart.mode)
         {
@@ -142,7 +145,7 @@ void dart_task(void const*pvParameters)
 
             case DART_BACK:
             {
-                dart_back_handle();
+                //dart_back_handle();
                 break;
             }
 
@@ -180,7 +183,7 @@ void dart_task(void const*pvParameters)
             }
         }
         //todo can发送函数
-            CAN_cmd_motor(CAN_2,
+        CAN_cmd_motor(CAN_2,
                       CAN_MOTOR_0x1FF_ID,
                       0,
                       thrust_motor.trigger_motor.give_current,
@@ -189,7 +192,7 @@ void dart_task(void const*pvParameters)
         CAN_cmd_motor(CAN_1,
                       CAN_MOTOR_0x1FF_ID,
                       gimbal_dart.motor_yaw.give_current,
-                      0,
+                      launcher_dart.turn_motor.give_current,
                       thrust_motor.thrust_angle_motor.give_current,
                       thrust_motor.thrust_move_motor.give_current);
         vTaskDelay(2);
@@ -206,7 +209,7 @@ static void dart_reset()
             reset_time=HAL_GetTick();
             begin_count1=0;
         }
-        if(HAL_GetTick() - reset_time > 2500)
+        if(HAL_GetTick() - reset_time > 3000)
         {
             thrust_motor.thrust_move_motor.give_current=0;
             launcher_dart.push_motor_r.give_current=0;
@@ -251,11 +254,13 @@ static void dart_reset()
     set_angle_thrust_angle=init_angle_thrust_angle;
     set_thrust_move_distance=init_thrust_move_distance;
 
-    back_thrust_angle_angle=init_angle_thrust_angle+4.6;
-    back_thrust_move_distance=init_thrust_move_distance+10;
-    back_drive_right_distance=init_drive_right_distance-33;
-    back_drive_left_distance=init_drive_left_distance+33;
+    back_thrust_angle_angle=init_angle_thrust_angle+6;
+    back_thrust_move_distance=init_thrust_move_distance+15;
+    back_drive_right_distance=init_drive_right_distance-10;
+    back_drive_left_distance=init_drive_left_distance+10;
     back_trigger_distance=init_trigger_distance+70;
+    ready1_back_drive_right_distance=init_drive_right_distance-15;
+    ready1_back_drive_left_distance=init_drive_left_distance+15;
     //launcher_dart.push_motor_r.angle_p.set=init_ecd_drive;
 }
 
@@ -289,12 +294,13 @@ static void dart_trigger_handle()
     {
         trigger_move_down_l=1;
     }
-
 }
 
 //差个扳机打开
 static void dart_launch_handle()
 {
+    //确定打前哨还是基地并且接收视觉数据,接受完后调整当前数组里的值
+
     if(launcherable_num==1 && num_launched<2)
     {
         num_launched+=1;
@@ -303,179 +309,454 @@ static void dart_launch_handle()
     {
         num_launched+=1;
     }
-    gimbal_dart.mode=DART_READY;
+    if(num_launched<4)
+    {
+        gimbal_dart.mode=DART_READY;
+    }else
+    {
+        gimbal_dart.mode=DART_BACK;
+    }
 
+}
+
+static void set_drive_distance()
+{
+    ready1_set_drive_right_distance=-(dart_length-slide_length-trigger_to_base_distance_set[num_launched]-10-get_drive_right_distance);
+    ready1_set_drive_left_distance=(dart_length-slide_length-trigger_to_base_distance_set[num_launched]-10+get_drive_left_distance);
 }
 
 static void dart_ready1()
 {
-    //扳机打开
-    if(dart_goal==GOAL_FRONT_STATION)
+    if (ready1_flag == 0) {
+        set_drive_distance();
+        ready1_flag = 1;
+    }
+    if(flags.is_ready_ok==true)
     {
-        thrust_motor.trigger_motor.speed_p.set= pid_calc(&thrust_motor.trigger_motor.angle_p,
-                                                         thrust_motor.trigger_motor.motor_measure->total_ecd,
-                                                         ecd_trigger[front]+init_ecd_trigger);
-        thrust_motor.trigger_motor.give_current= pid_calc(&thrust_motor.trigger_motor.speed_p,
-                                                          thrust_motor.trigger_motor.motor_measure->speed_rpm,
-                                                          thrust_motor.trigger_motor.speed_p.set);
-        if(abs(thrust_motor.trigger_motor.motor_measure->total_ecd-ecd_trigger[front]-init_ecd_trigger)<5)
-        {
-            flags.is_ready1_trigger_move_ok=true;
-        }
+        launcher_dart.push_motor_r.speed_p.set = pid_calc(&launcher_dart.push_motor_r.angle_p,
+                                                          get_drive_right_distance,
+                                                          ready1_back_drive_right_distance);
+        launcher_dart.push_motor_r.give_current = pid_calc(&launcher_dart.push_motor_r.speed_p,
+                                                           launcher_dart.push_motor_r.motor_measure->speed_rpm,
+                                                           launcher_dart.push_motor_r.speed_p.set);
+        launcher_dart.push_motor_l.speed_p.set = pid_calc(&launcher_dart.push_motor_r.angle_p,
+                                                          get_drive_left_distance,
+                                                          ready1_back_drive_left_distance);
+        launcher_dart.push_motor_l.give_current = pid_calc(&launcher_dart.push_motor_r.speed_p,
+                                                           launcher_dart.push_motor_l.motor_measure->speed_rpm,
+                                                           launcher_dart.push_motor_l.speed_p.set);
     }else
     {
-        thrust_motor.trigger_motor.speed_p.set= pid_calc(&thrust_motor.trigger_motor.angle_p,
-                                                         thrust_motor.trigger_motor.motor_measure->total_ecd,
-                                                         ecd_trigger[base]+init_ecd_trigger);
-        thrust_motor.trigger_motor.give_current= pid_calc(&thrust_motor.trigger_motor.speed_p,
-                                                          thrust_motor.trigger_motor.motor_measure->speed_rpm,
-                                                          thrust_motor.trigger_motor.speed_p.set);
-        if(abs(thrust_motor.trigger_motor.motor_measure->total_ecd-ecd_trigger[base]-init_ecd_trigger)<5)
+        if (dart_goal == GOAL_FRONT_STATION) {
+            thrust_motor.trigger_motor.speed_p.set = pid_calc(&thrust_motor.trigger_motor.angle_p,
+                                                              get_trigger_distance,
+                                                              trigger_to_outposts_distance_set[num_launched]);
+            thrust_motor.trigger_motor.give_current = pid_calc(&thrust_motor.trigger_motor.speed_p,
+                                                               thrust_motor.trigger_motor.motor_measure->speed_rpm,
+                                                               thrust_motor.trigger_motor.speed_p.set);
+            if (fabs(get_trigger_distance - trigger_to_outposts_distance_set[num_launched]) < 1) {
+                flags.is_ready1_trigger_move_ok = true;
+            }
+        } else {
+            thrust_motor.trigger_motor.speed_p.set = pid_calc(&thrust_motor.trigger_motor.angle_p,
+                                                              get_trigger_distance,
+                                                              trigger_to_base_distance_set[num_launched]);
+            thrust_motor.trigger_motor.give_current = pid_calc(&thrust_motor.trigger_motor.speed_p,
+                                                               thrust_motor.trigger_motor.motor_measure->speed_rpm,
+                                                               thrust_motor.trigger_motor.speed_p.set);
+            if (fabs(get_trigger_distance - trigger_to_base_distance_set[num_launched]) < 1) {
+                flags.is_ready1_trigger_move_ok = true;
+            }
+        }
+        if (flags.is_ready1_trigger_move_ok == true) {
+            if(flags.is_ready1_trigger_on_ok==false)
+            {
+                __HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_1,2000);
+                vTaskDelay(500);
+                flags.is_ready1_trigger_on_ok=true;
+            }
+        }
+        if(flags.is_ready1_trigger_on_ok==true)
         {
-            flags.is_ready1_trigger_move_ok=true;
+            launcher_dart.push_motor_r.speed_p.set = pid_calc(&launcher_dart.push_motor_r.angle_p,
+                                                              get_drive_right_distance,
+                                                              ready1_set_drive_right_distance);
+            launcher_dart.push_motor_r.give_current = pid_calc(&launcher_dart.push_motor_r.speed_p,
+                                                               launcher_dart.push_motor_r.motor_measure->speed_rpm,
+                                                               launcher_dart.push_motor_r.speed_p.set);
+            launcher_dart.push_motor_l.speed_p.set = pid_calc(&launcher_dart.push_motor_r.angle_p,
+                                                              get_drive_left_distance,
+                                                              ready1_set_drive_left_distance);
+            launcher_dart.push_motor_l.give_current = pid_calc(&launcher_dart.push_motor_r.speed_p,
+                                                               launcher_dart.push_motor_l.motor_measure->speed_rpm,
+                                                               launcher_dart.push_motor_l.speed_p.set);
+            if (fabs(get_drive_right_distance - ready1_set_drive_right_distance) < 10 &&
+                fabs(get_drive_left_distance - ready1_set_drive_left_distance) < 10) {
+                flags.is_ready1_drive_ok = true;
+            }
+        }
+        if(flags.is_ready1_drive_ok==true)
+        {
+            if(flags.is_ready1_trigger_off_ok==false)
+            {
+                __HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_1,1000);
+                vTaskDelay(500);
+                flags.is_ready1_trigger_off_ok=true;
+            }
+        }
+        if (flags.is_ready1_trigger_off_ok == true) {
+            launcher_dart.push_motor_r.speed_p.set = pid_calc(&launcher_dart.push_motor_r.angle_p,
+                                                              get_drive_right_distance,
+                                                              ready1_back_drive_right_distance);
+            launcher_dart.push_motor_r.give_current = pid_calc(&launcher_dart.push_motor_r.speed_p,
+                                                               launcher_dart.push_motor_r.motor_measure->speed_rpm,
+                                                               launcher_dart.push_motor_r.speed_p.set);
+            launcher_dart.push_motor_l.speed_p.set = pid_calc(&launcher_dart.push_motor_r.angle_p,
+                                                              get_drive_left_distance,
+                                                              ready1_back_drive_left_distance);
+            launcher_dart.push_motor_l.give_current = pid_calc(&launcher_dart.push_motor_r.speed_p,
+                                                               launcher_dart.push_motor_l.motor_measure->speed_rpm,
+                                                               launcher_dart.push_motor_l.speed_p.set);
+            if (fabs(get_drive_right_distance - ready1_back_drive_right_distance) < 5 &&
+                fabs(get_drive_left_distance - ready1_back_drive_left_distance) < 5) {
+                flags.is_ready1_drive_init_ok = true;
+            }
+        }
+        if (flags.is_ready1_drive_init_ok == true) {
+            flags.is_ready_ok = true;
+            flags.is_ready1_drive_init_ok = false;
+            flags.is_ready1_trigger_on_ok = false;
+            flags.is_ready1_drive_ok = false;
+            flags.is_ready1_trigger_move_ok = false;
+            flags.is_ready1_trigger_off_ok=false;
+            flags.is_ready1_trigger_on_ok=false;
         }
     }
-    if(flags.is_ready1_trigger_move_ok==true)
-    {
-        launcher_dart.push_motor_r.speed_p.set= pid_calc(&launcher_dart.push_motor_r.angle_p,
-                                                         launcher_dart.push_motor_r.motor_measure->total_ecd,
-                                                         init_ecd_drive_right);
-        launcher_dart.push_motor_r.give_current= pid_calc(&launcher_dart.push_motor_r.speed_p,
-                                                          launcher_dart.push_motor_r.motor_measure->speed_rpm,
-                                                          launcher_dart.push_motor_r.speed_p.set);
-        if(abs(launcher_dart.push_motor_r.motor_measure->total_ecd-init_ecd_drive_right)<5)
-        {
-            flags.is_ready1_drive_ok=true;
-        }
-    }
-    if(flags.is_ready1_drive_ok==true)
-    {
-        //扳机闭合
-    }
-    if(flags.is_ready1_trigger_on_ok==true)
-    {
-        flags.is_ready_ok=true;
-        flags.is_ready1_trigger_move_ok=false;
-        flags.is_ready1_drive_ok=false;
-        flags.is_ready1_trigger_on_ok=false;
-    }
+}
+
+static void set_load_drive_distance()
+{
+    ready2_load_set_drive_left_distance=384+init_drive_left_distance;
+    ready2_load_set_drive_right_distance=-392+init_drive_right_distance;
+}
+
+static void set_goal_drive_distance()
+{
+    ready2_goal_set_drive_right_distance=-(dart_length-slide_length-trigger_to_base_distance_set[num_launched]-10-get_drive_right_distance);
+    ready2_goal_set_drive_left_distance=(dart_length-slide_length-trigger_to_base_distance_set[num_launched]-10+get_drive_left_distance);
 }
 
 static void dart_ready2()
 {
     //扳机打开
-    //推动滑台下放到上膛位置
-    launcher_dart.push_motor_r.speed_p.set= pid_calc(&launcher_dart.push_motor_r.angle_p,
-                                                     launcher_dart.push_motor_r.motor_measure->total_ecd,
-                                                     goal_ecd_loading_drive+init_ecd_drive_right);
-    launcher_dart.push_motor_r.give_current= pid_calc(&launcher_dart.push_motor_r.speed_p,
-                                                      launcher_dart.push_motor_r.motor_measure->speed_rpm,
-                                                      launcher_dart.push_motor_r.speed_p.set);
-    //换弹电机旋转到上弹位置
-    if(abs(launcher_dart.push_motor_r.motor_measure->total_ecd-goal_ecd_loading_drive-init_ecd_drive_right)<5)
+    if(ready2_load_flag==0)
     {
-        turn_angle+=1;
-        turn_angle%=8;
-        launcher_dart.turn_motor.angle_p.set=turn_motor_angle_set[turn_angle];
-        launcher_dart.turn_motor.angle_p.get= motor_ecd_to_angle_change(launcher_dart.turn_motor.motor_measure->ecd,launcher_dart.turn_motor.motor_measure->offset_ecd);
-        launcher_dart.turn_motor.speed_p.set= pid_loop_calc(&launcher_dart.turn_motor.angle_p,
-                                                            launcher_dart.turn_motor.angle_p.get,
-                                                            launcher_dart.turn_motor.angle_p.set,
-                                                            180,-180);
-        launcher_dart.turn_motor.give_current= pid_calc(&launcher_dart.turn_motor.speed_p,
-                                                        launcher_dart.turn_motor.motor_measure->speed_rpm,
-                                                        launcher_dart.turn_motor.speed_p.set);
+        set_load_drive_distance();
+        ready2_load_flag=1;
     }
-    //推弹滑台推弹进行上弹
-    if(fabs(launcher_dart.turn_motor.angle_p.get-turn_motor_angle_set[turn_angle])<0.1)
-    {
-        thrust_motor.thrust_angle_motor.angle_p.set=thrust_motor_angle_set[work_mode];
-        thrust_motor.thrust_angle_motor.angle_p.get= motor_ecd_to_angle_change(thrust_motor.thrust_angle_motor.motor_measure->ecd,thrust_motor.thrust_angle_motor.motor_measure->offset_ecd);
-        thrust_motor.thrust_angle_motor.speed_p.set= pid_loop_calc(&thrust_motor.thrust_angle_motor.angle_p,
-                                                                   thrust_motor.thrust_angle_motor.angle_p.get,
-                                                                   thrust_motor.thrust_angle_motor.angle_p.set,
-                                                                   180,-180);
-        thrust_motor.thrust_angle_motor.give_current= pid_calc(&thrust_motor.thrust_angle_motor.speed_p,
-                                                               thrust_motor.thrust_angle_motor.motor_measure->speed_rpm,
-                                                               thrust_motor.thrust_angle_motor.speed_p.set);
-    }
-    if(fabs(thrust_motor.thrust_angle_motor.angle_p.get-thrust_motor_angle_set[work_mode])<0.1)
-    {
-        thrust_motor.thrust_move_motor.speed_p.set= pid_calc(&thrust_motor.thrust_move_motor.angle_p,
-                                                             thrust_motor.thrust_move_motor.motor_measure->total_ecd,
-                                                             goal_ecd_loading_thrust+init_ecd_thrust_move);
-        thrust_motor.thrust_move_motor.give_current= pid_calc(&thrust_motor.thrust_move_motor.speed_p,
-                                                              thrust_motor.thrust_move_motor.motor_measure->speed_rpm,
-                                                              thrust_motor.thrust_move_motor.speed_p.set);
-    }
-    //推弹滑台复位
-    if(abs(thrust_motor.thrust_move_motor.motor_measure->total_ecd-goal_ecd_loading_thrust-init_ecd_thrust_move)<1)
-    {
-        thrust_motor.thrust_angle_motor.angle_p.set=thrust_motor_angle_set[free_mode];
-        thrust_motor.thrust_angle_motor.angle_p.get= motor_ecd_to_angle_change(thrust_motor.thrust_angle_motor.motor_measure->ecd,thrust_motor.thrust_angle_motor.motor_measure->offset_ecd);
-        thrust_motor.thrust_angle_motor.speed_p.set= pid_loop_calc(&thrust_motor.thrust_angle_motor.angle_p,
-                                                                   thrust_motor.thrust_angle_motor.angle_p.get,
-                                                                   thrust_motor.thrust_angle_motor.angle_p.set,
-                                                                   180,-180);
-        thrust_motor.thrust_angle_motor.give_current= pid_calc(&thrust_motor.thrust_angle_motor.speed_p,
-                                                               thrust_motor.thrust_angle_motor.motor_measure->speed_rpm,
-                                                               thrust_motor.thrust_angle_motor.speed_p.set);
+    if(flags.is_ready2_ok==false) {
+        launcher_dart.turn_motor.speed_p.set = pid_loop_calc(&launcher_dart.turn_motor.angle_p,
+                                                             launcher_dart.turn_motor.angle_p.get,
+                                                             turn_motor_angle_set[turn_angle],
+                                                             180, -180);
+        launcher_dart.turn_motor.give_current = pid_calc(&launcher_dart.turn_motor.speed_p,
+                                                         launcher_dart.turn_motor.motor_measure->speed_rpm,
+                                                         launcher_dart.turn_motor.speed_p.set);
 
-        thrust_motor.thrust_move_motor.speed_p.set= pid_calc(&thrust_motor.thrust_move_motor.angle_p,
-                                                             thrust_motor.thrust_move_motor.motor_measure->total_ecd,
-                                                             init_ecd_thrust_move);
-        thrust_motor.thrust_move_motor.give_current = pid_calc(&thrust_motor.thrust_move_motor.speed_p,
-                                                              thrust_motor.thrust_move_motor.motor_measure->speed_rpm,
-                                                              thrust_motor.thrust_move_motor.speed_p.set);
+        if (fabs(launcher_dart.turn_motor.angle_p.get - turn_motor_angle_set[turn_angle]) < 0.5) {
+            flags.is_ready2_turn_init_ok = true;
+            turn_angle = (turn_angle + 1) % 6;
+        }
+        if (flags.is_ready2_turn_init_ok == true) {
+            launcher_dart.push_motor_r.speed_p.set = pid_calc(&launcher_dart.push_motor_r.angle_p,
+                                                              get_drive_right_distance,
+                                                              ready2_load_set_drive_right_distance);
+            launcher_dart.push_motor_r.give_current = pid_calc(&launcher_dart.push_motor_r.speed_p,
+                                                               launcher_dart.push_motor_r.motor_measure->speed_rpm,
+                                                               launcher_dart.push_motor_r.speed_p.set);
+
+            launcher_dart.push_motor_l.speed_p.set = pid_calc(&launcher_dart.push_motor_r.angle_p,
+                                                              get_drive_left_distance,
+                                                              ready2_load_set_drive_left_distance);
+            launcher_dart.push_motor_l.give_current = pid_calc(&launcher_dart.push_motor_r.speed_p,
+                                                               launcher_dart.push_motor_l.motor_measure->speed_rpm,
+                                                               launcher_dart.push_motor_l.speed_p.set);
+            if (fabs(get_drive_right_distance - ready2_load_set_drive_right_distance) < 10 &&
+                fabs(get_drive_left_distance - ready2_load_set_drive_left_distance) < 10) {
+                flags.is_ready2_drive_load_ok = true;
+            }
+        }
+
+        if (flags.is_ready2_drive_load_ok == true) {
+            launcher_dart.turn_motor.speed_p.set = pid_loop_calc(&launcher_dart.turn_motor.angle_p,
+                                                                 launcher_dart.turn_motor.angle_p.get,
+                                                                 turn_motor_angle_set[turn_angle],
+                                                                 180, -180);
+            launcher_dart.turn_motor.give_current = pid_calc(&launcher_dart.turn_motor.speed_p,
+                                                             launcher_dart.turn_motor.motor_measure->speed_rpm,
+                                                             launcher_dart.turn_motor.speed_p.set);
+            if (fabs(launcher_dart.turn_motor.angle_p.get - turn_motor_angle_set[turn_angle]) < 0.5) {
+                flags.is_ready2_turn_load_ok = true;
+                turn_angle = (turn_angle + 1) % 6;
+            }
+        }
+
+        if (flags.is_ready2_turn_load_ok == true) {
+            thrust_motor.thrust_angle_motor.speed_p.set = pid_loop_calc(&thrust_motor.thrust_angle_motor.angle_p,
+                                                                        get_angle_thrust_angle,
+                                                                        ready2_thrust_angle_goal_angle,
+                                                                        180, -180);
+            thrust_motor.thrust_angle_motor.give_current = pid_calc(&thrust_motor.thrust_angle_motor.speed_p,
+                                                                    thrust_motor.thrust_angle_motor.motor_measure->speed_rpm,
+                                                                    thrust_motor.thrust_angle_motor.speed_p.set);
+            if (fabs(thrust_motor.thrust_angle_motor.angle_p.get - ready2_thrust_angle_goal_angle) < 0.5) {
+                flags.is_ready2_thrust_angle_goal_ok = true;
+            }
+
+        }
+
+        if (flags.is_ready2_thrust_angle_goal_ok == true) {
+            thrust_motor.thrust_move_motor.speed_p.set = pid_calc(&thrust_motor.thrust_move_motor.angle_p,
+                                                                  get_thrust_move_distance,
+                                                                  ready2_thrust_move_goal_distance);
+            thrust_motor.thrust_move_motor.give_current = pid_calc(&thrust_motor.thrust_move_motor.speed_p,
+                                                                   thrust_motor.thrust_move_motor.motor_measure->speed_rpm,
+                                                                   thrust_motor.thrust_move_motor.speed_p.set);
+            if (fabs(thrust_motor.thrust_move_motor.angle_p.get - ready2_thrust_move_goal_distance) < 10) {
+                flags.is_ready2_thrust_move_goal_ok = true;
+            }
+        }
+
+        if (flags.is_ready2_thrust_move_goal_ok == true) {
+            thrust_motor.thrust_move_motor.speed_p.set = pid_calc(&thrust_motor.thrust_move_motor.angle_p,
+                                                                  get_thrust_move_distance,
+                                                                  back_thrust_move_distance);
+            thrust_motor.thrust_move_motor.give_current = pid_calc(&thrust_motor.thrust_move_motor.speed_p,
+                                                                   thrust_motor.thrust_move_motor.motor_measure->speed_rpm,
+                                                                   thrust_motor.thrust_move_motor.speed_p.set);
+
+            if (fabs(thrust_motor.thrust_move_motor.angle_p.get - back_thrust_move_distance) < 10) {
+                flags.is_ready2_thrust_move_back_ok = true;
+            }
+        }
+
+        if (flags.is_ready2_thrust_move_back_ok == true) {
+            thrust_motor.thrust_angle_motor.speed_p.set = pid_loop_calc(&thrust_motor.thrust_angle_motor.angle_p,
+                                                                        get_angle_thrust_angle,
+                                                                        back_thrust_angle_angle,
+                                                                        180, -180);
+            thrust_motor.thrust_angle_motor.give_current = pid_calc(&thrust_motor.thrust_angle_motor.speed_p,
+                                                                    thrust_motor.thrust_angle_motor.motor_measure->speed_rpm,
+                                                                    thrust_motor.thrust_angle_motor.speed_p.set);
+
+            if (fabs(thrust_motor.thrust_angle_motor.angle_p.get - back_thrust_angle_angle) < 1) {
+                flags.is_ready2_thrust_angle_back_ok = true;
+            }
+        }
+
+        if (flags.is_ready2_thrust_angle_back_ok == true) {
+            launcher_dart.turn_motor.speed_p.set = pid_loop_calc(&launcher_dart.turn_motor.angle_p,
+                                                                 launcher_dart.turn_motor.angle_p.get,
+                                                                 turn_motor_angle_set[turn_angle], 180, -180);
+            launcher_dart.turn_motor.give_current = pid_calc(&launcher_dart.turn_motor.speed_p,
+                                                             launcher_dart.turn_motor.motor_measure->speed_rpm,
+                                                             launcher_dart.turn_motor.speed_p.set);
+
+            if (fabs(launcher_dart.turn_motor.angle_p.get - turn_motor_angle_set[turn_angle]) < 0.5) {
+                flags.is_ready2_turn_end_ok = true;
+            }
+        }
+
+        if (flags.is_ready2_turn_end_ok == true) {
+            if (ready2_set_flag == 0) {
+                ready2_goal_flag = 1;
+                set_goal_drive_distance();
+            }
+            launcher_dart.push_motor_r.speed_p.set = pid_calc(&launcher_dart.push_motor_r.angle_p,
+                                                              get_drive_right_distance,
+                                                              ready2_goal_set_drive_right_distance);
+            launcher_dart.push_motor_r.give_current = pid_calc(&launcher_dart.push_motor_r.speed_p,
+                                                               launcher_dart.push_motor_r.motor_measure->speed_rpm,
+                                                               launcher_dart.push_motor_r.speed_p.set);
+
+            launcher_dart.push_motor_l.speed_p.set = pid_calc(&launcher_dart.push_motor_r.angle_p,
+                                                              get_drive_left_distance,
+                                                              ready2_goal_set_drive_left_distance);
+            launcher_dart.push_motor_l.give_current = pid_calc(&launcher_dart.push_motor_l.speed_p,
+                                                               launcher_dart.push_motor_l.motor_measure->speed_rpm,
+                                                               launcher_dart.push_motor_l.speed_p.set);
+            if (fabs(get_drive_right_distance - ready2_goal_set_drive_right_distance) < 10 &&
+                fabs(get_drive_left_distance - ready2_goal_set_drive_left_distance) < 10) {
+                flags.is_ready2_drive_goal_ok = true;
+            }
+        }
+
+        if (flags.is_ready2_drive_goal_ok == true) {
+            launcher_dart.push_motor_r.speed_p.set = pid_calc(&launcher_dart.push_motor_r.angle_p,
+                                                              get_drive_right_distance,
+                                                              back_drive_right_distance);
+            launcher_dart.push_motor_r.give_current = pid_calc(&launcher_dart.push_motor_r.speed_p,
+                                                               launcher_dart.push_motor_r.motor_measure->speed_rpm,
+                                                               launcher_dart.push_motor_r.speed_p.set);
+
+            launcher_dart.push_motor_l.speed_p.set = pid_calc(&launcher_dart.push_motor_r.angle_p,
+                                                              get_drive_left_distance,
+                                                              back_drive_left_distance);
+            launcher_dart.push_motor_l.give_current = pid_calc(&launcher_dart.push_motor_r.speed_p,
+                                                               launcher_dart.push_motor_l.motor_measure->speed_rpm,
+                                                               launcher_dart.push_motor_l.speed_p.set);
+            if (fabs(get_drive_right_distance - back_drive_right_distance) < 10 &&
+                fabs(get_drive_left_distance - back_drive_left_distance) < 10) {
+                flags.is_ready2_drive_back_ok = true;
+            }
+            thrust_motor.thrust_move_motor.speed_p.set = pid_calc(&thrust_motor.thrust_move_motor.angle_p,
+                                                                  get_thrust_move_distance,
+                                                                  back_thrust_move_distance);
+            thrust_motor.thrust_move_motor.give_current = pid_calc(&thrust_motor.thrust_move_motor.speed_p,
+                                                                   thrust_motor.thrust_move_motor.motor_measure->speed_rpm,
+                                                                   thrust_motor.thrust_move_motor.speed_p.set);
+            if (fabs(get_thrust_move_distance - back_thrust_move_distance) < 10) {
+                thrust_motor.thrust_angle_motor.speed_p.set = pid_loop_calc(&thrust_motor.thrust_angle_motor.angle_p,
+                                                                            get_angle_thrust_angle,
+                                                                            back_thrust_angle_angle);
+                thrust_motor.thrust_angle_motor.give_current = pid_calc(&thrust_motor.thrust_angle_motor.speed_p,
+                                                                        thrust_motor.thrust_angle_motor.motor_measure->speed_rpm,
+                                                                        thrust_motor.thrust_angle_motor.speed_p.set);
+                if (fabs(get_angle_thrust_angle - back_thrust_angle_angle) < 1) {
+                    flags.is_ready2_thrust_back_ok = true;
+                }
+            }
+        }
+        if (flags.is_ready2_drive_back_ok == true && flags.is_ready2_thrust_back_ok == true) {
+            flags.is_ready2_ok = true;
+        }
+        if (flags.is_ready2_ok == true) {
+            flags.is_ready2_thrust_back_ok = false;
+            flags.is_ready2_drive_back_ok = false;
+            flags.is_ready2_drive_goal_ok = false;
+            flags.is_ready2_turn_end_ok = false;
+            flags.is_ready2_thrust_angle_back_ok = false;
+            flags.is_ready2_thrust_move_back_ok = false;
+            flags.is_ready2_thrust_move_goal_ok = false;
+            flags.is_ready2_turn_load_ok = false;
+            flags.is_ready2_drive_load_ok = false;
+            flags.is_ready2_turn_init_ok = false;
+        }
     }
-    //推动滑台下放至扳机位置同时换弹电机旋转至下一个角度值
-    if(fabs(thrust_motor.thrust_angle_motor.angle_p.get-thrust_motor_angle_set[free_mode])<0.1&&abs(abs(thrust_motor.thrust_move_motor.motor_measure->total_ecd-init_ecd_thrust_move)<1))
-    {
-        launcher_dart.push_motor_r.angle_p.set=trigger_ecd_set[launcherable_num]+init_ecd_drive_right;
-        launcher_dart.push_motor_r.speed_p.set= pid_calc(&launcher_dart.push_motor_r.angle_p,
-                                                         launcher_dart.push_motor_r.motor_measure->total_ecd,
-                                                         launcher_dart.push_motor_r.angle_p.set);
-        launcher_dart.push_motor_r.give_current= pid_calc(&launcher_dart.push_motor_r.speed_p,
-                                                          launcher_dart.push_motor_r.motor_measure->speed_rpm,
-                                                          launcher_dart.push_motor_r.speed_p.set);
-        turn_angle+=1;
-        turn_angle%=8;
-        launcher_dart.turn_motor.angle_p.get= motor_ecd_to_angle_change(launcher_dart.turn_motor.motor_measure->ecd,launcher_dart.turn_motor.motor_measure->offset_ecd);
-        launcher_dart.turn_motor.speed_p.set= pid_loop_calc(&launcher_dart.turn_motor.angle_p,
-                                                       launcher_dart.turn_motor.angle_p.get,
-                                                       turn_motor_angle_set[turn_angle],
-                                                       180,-180);
-        launcher_dart.turn_motor.give_current= pid_calc(&launcher_dart.turn_motor.speed_p,
-                                                        launcher_dart.turn_motor.motor_measure->speed_rpm,
-                                                        launcher_dart.turn_motor.speed_p.set);
-    }
-    //扳机闭合同时推动滑台复位
-    if(abs(launcher_dart.push_motor_r.motor_measure->total_ecd-trigger_ecd_set[launcherable_num]-init_ecd_trigger)<1&&fabs(launcher_dart.turn_motor.angle_p.get-turn_motor_angle_set[turn_angle])<0.1)
-    {
-        //扳机闭合
-        launcher_dart.push_motor_r.speed_p.set= pid_calc(&launcher_dart.push_motor_r.angle_p,
-                                                         launcher_dart.push_motor_r.motor_measure->total_ecd,
-                                                         init_ecd_drive_right);
-        launcher_dart.push_motor_r.give_current= pid_calc(&launcher_dart.push_motor_r.speed_p,
-                                                          launcher_dart.push_motor_r.motor_measure->speed_rpm,
-                                                          launcher_dart.push_motor_r.motor_measure->speed_rpm);
-    }
-    if(abs(launcher_dart.push_motor_r.motor_measure->total_ecd-init_ecd_drive_right)<1)
-    {
-        flags.is_ready_ok=true;
-    }
+
+//    //扳机打开
+//    //推动滑台下放到上膛位置
+//    launcher_dart.push_motor_r.speed_p.set= pid_calc(&launcher_dart.push_motor_r.angle_p,
+//                                                     launcher_dart.push_motor_r.motor_measure->total_ecd,
+//                                                     goal_ecd_loading_drive+init_ecd_drive_right);
+//    launcher_dart.push_motor_r.give_current= pid_calc(&launcher_dart.push_motor_r.speed_p,
+//                                                      launcher_dart.push_motor_r.motor_measure->speed_rpm,
+//                                                      launcher_dart.push_motor_r.speed_p.set);
+//    //换弹电机旋转到上弹位置
+//    if(abs(launcher_dart.push_motor_r.motor_measure->total_ecd-goal_ecd_loading_drive-init_ecd_drive_right)<5)
+//    {
+//        turn_angle+=1;
+//        turn_angle%=8;
+//        launcher_dart.turn_motor.angle_p.set=turn_motor_angle_set[turn_angle];
+//        launcher_dart.turn_motor.angle_p.get= motor_ecd_to_angle_change(launcher_dart.turn_motor.motor_measure->ecd,launcher_dart.turn_motor.motor_measure->offset_ecd);
+//        launcher_dart.turn_motor.speed_p.set= pid_loop_calc(&launcher_dart.turn_motor.angle_p,
+//                                                            launcher_dart.turn_motor.angle_p.get,
+//                                                            launcher_dart.turn_motor.angle_p.set,
+//                                                            180,-180);
+//        launcher_dart.turn_motor.give_current= pid_calc(&launcher_dart.turn_motor.speed_p,
+//                                                        launcher_dart.turn_motor.motor_measure->speed_rpm,
+//                                                        launcher_dart.turn_motor.speed_p.set);
+//    }
+//    //推弹滑台推弹进行上弹
+//    if(fabs(launcher_dart.turn_motor.angle_p.get-turn_motor_angle_set[turn_angle])<0.1)
+//    {
+//        thrust_motor.thrust_angle_motor.angle_p.set=thrust_motor_angle_set[work_mode];
+//        thrust_motor.thrust_angle_motor.angle_p.get= motor_ecd_to_angle_change(thrust_motor.thrust_angle_motor.motor_measure->ecd,thrust_motor.thrust_angle_motor.motor_measure->offset_ecd);
+//        thrust_motor.thrust_angle_motor.speed_p.set= pid_loop_calc(&thrust_motor.thrust_angle_motor.angle_p,
+//                                                                   thrust_motor.thrust_angle_motor.angle_p.get,
+//                                                                   thrust_motor.thrust_angle_motor.angle_p.set,
+//                                                                   180,-180);
+//        thrust_motor.thrust_angle_motor.give_current= pid_calc(&thrust_motor.thrust_angle_motor.speed_p,
+//                                                               thrust_motor.thrust_angle_motor.motor_measure->speed_rpm,
+//                                                               thrust_motor.thrust_angle_motor.speed_p.set);
+//    }
+//    if(fabs(thrust_motor.thrust_angle_motor.angle_p.get-thrust_motor_angle_set[work_mode])<0.1)
+//    {
+//        thrust_motor.thrust_move_motor.speed_p.set= pid_calc(&thrust_motor.thrust_move_motor.angle_p,
+//                                                             thrust_motor.thrust_move_motor.motor_measure->total_ecd,
+//                                                             goal_ecd_loading_thrust+init_ecd_thrust_move);
+//        thrust_motor.thrust_move_motor.give_current= pid_calc(&thrust_motor.thrust_move_motor.speed_p,
+//                                                              thrust_motor.thrust_move_motor.motor_measure->speed_rpm,
+//                                                              thrust_motor.thrust_move_motor.speed_p.set);
+//    }
+//    //推弹滑台复位
+//    if(abs(thrust_motor.thrust_move_motor.motor_measure->total_ecd-goal_ecd_loading_thrust-init_ecd_thrust_move)<1)
+//    {
+//        thrust_motor.thrust_angle_motor.angle_p.set=thrust_motor_angle_set[free_mode];
+//        thrust_motor.thrust_angle_motor.angle_p.get= motor_ecd_to_angle_change(thrust_motor.thrust_angle_motor.motor_measure->ecd,thrust_motor.thrust_angle_motor.motor_measure->offset_ecd);
+//        thrust_motor.thrust_angle_motor.speed_p.set= pid_loop_calc(&thrust_motor.thrust_angle_motor.angle_p,
+//                                                                   thrust_motor.thrust_angle_motor.angle_p.get,
+//                                                                   thrust_motor.thrust_angle_motor.angle_p.set,
+//                                                                   180,-180);
+//        thrust_motor.thrust_angle_motor.give_current= pid_calc(&thrust_motor.thrust_angle_motor.speed_p,
+//                                                               thrust_motor.thrust_angle_motor.motor_measure->speed_rpm,
+//                                                               thrust_motor.thrust_angle_motor.speed_p.set);
+//
+//        thrust_motor.thrust_move_motor.speed_p.set= pid_calc(&thrust_motor.thrust_move_motor.angle_p,
+//                                                             thrust_motor.thrust_move_motor.motor_measure->total_ecd,
+//                                                             init_ecd_thrust_move);
+//        thrust_motor.thrust_move_motor.give_current = pid_calc(&thrust_motor.thrust_move_motor.speed_p,
+//                                                              thrust_motor.thrust_move_motor.motor_measure->speed_rpm,
+//                                                              thrust_motor.thrust_move_motor.speed_p.set);
+//    }
+//    //推动滑台下放至扳机位置同时换弹电机旋转至下一个角度值
+//    if(fabs(thrust_motor.thrust_angle_motor.angle_p.get-thrust_motor_angle_set[free_mode])<0.1&&abs(abs(thrust_motor.thrust_move_motor.motor_measure->total_ecd-init_ecd_thrust_move)<1))
+//    {
+//        launcher_dart.push_motor_r.angle_p.set=trigger_ecd_set[launcherable_num]+init_ecd_drive_right;
+//        launcher_dart.push_motor_r.speed_p.set= pid_calc(&launcher_dart.push_motor_r.angle_p,
+//                                                         launcher_dart.push_motor_r.motor_measure->total_ecd,
+//                                                         launcher_dart.push_motor_r.angle_p.set);
+//        launcher_dart.push_motor_r.give_current= pid_calc(&launcher_dart.push_motor_r.speed_p,
+//                                                          launcher_dart.push_motor_r.motor_measure->speed_rpm,
+//                                                          launcher_dart.push_motor_r.speed_p.set);
+//        turn_angle+=1;
+//        turn_angle%=8;
+//        launcher_dart.turn_motor.angle_p.get= motor_ecd_to_angle_change(launcher_dart.turn_motor.motor_measure->ecd,launcher_dart.turn_motor.motor_measure->offset_ecd);
+//        launcher_dart.turn_motor.speed_p.set= pid_loop_calc(&launcher_dart.turn_motor.angle_p,
+//                                                       launcher_dart.turn_motor.angle_p.get,
+//                                                       turn_motor_angle_set[turn_angle],
+//                                                       180,-180);
+//        launcher_dart.turn_motor.give_current= pid_calc(&launcher_dart.turn_motor.speed_p,
+//                                                        launcher_dart.turn_motor.motor_measure->speed_rpm,
+//                                                        launcher_dart.turn_motor.speed_p.set);
+//    }
+//    //扳机闭合同时推动滑台复位
+//    if(abs(launcher_dart.push_motor_r.motor_measure->total_ecd-trigger_ecd_set[launcherable_num]-init_ecd_trigger)<1&&fabs(launcher_dart.turn_motor.angle_p.get-turn_motor_angle_set[turn_angle])<0.1)
+//    {
+//        //扳机闭合
+//        launcher_dart.push_motor_r.speed_p.set= pid_calc(&launcher_dart.push_motor_r.angle_p,
+//                                                         launcher_dart.push_motor_r.motor_measure->total_ecd,
+//                                                         init_ecd_drive_right);
+//        launcher_dart.push_motor_r.give_current= pid_calc(&launcher_dart.push_motor_r.speed_p,
+//                                                          launcher_dart.push_motor_r.motor_measure->speed_rpm,
+//                                                          launcher_dart.push_motor_r.motor_measure->speed_rpm);
+//    }
+//    if(abs(launcher_dart.push_motor_r.motor_measure->total_ecd-init_ecd_drive_right)<1)
+//    {
+//        flags.is_ready_ok=true;
+//    }
 }
 
 static void dart_ready_handle()
 {
-    osDelay(2);
+    vTaskDelay(10);
     if(num_launched==0)
     {
         dart_ready1();
     }
     if(num_launched>=1)
     {
-        dart_ready2();
+        dart_ready1();
     }
 
 
@@ -485,18 +766,18 @@ static void dart_goal_set_handle()
 {
     if(dart_goal==GOAL_FRONT_STATION)
     {
-        gimbal_dart.motor_yaw.relative_angle_set=angle_goal[front];
-        thrust_motor.trigger_motor.speed= pid_calc(&thrust_motor.trigger_motor.angle_p,thrust_motor.trigger_motor.motor_measure->total_ecd,ecd_trigger[0]+init_ecd_trigger);
+        gimbal_dart.motor_yaw.relative_angle_set=yaw_angle_goal[front];
+        thrust_motor.trigger_motor.speed= pid_calc(&thrust_motor.trigger_motor.angle_p,get_trigger_distance,trigger_to_outposts_distance_set[num_launched]);
         thrust_motor.trigger_motor.give_current= pid_calc(&thrust_motor.trigger_motor.speed_p,thrust_motor.trigger_motor.motor_measure->speed_rpm,thrust_motor.trigger_motor.speed);
     }else
     {
-        gimbal_dart.motor_yaw.relative_angle_set=angle_goal[base];
-        thrust_motor.trigger_motor.speed= pid_calc(&thrust_motor.trigger_motor.angle_p,thrust_motor.trigger_motor.motor_measure->total_ecd,ecd_trigger[1]+init_ecd_trigger);
+        gimbal_dart.motor_yaw.relative_angle_set=yaw_angle_goal[base];
+        thrust_motor.trigger_motor.speed= pid_calc(&thrust_motor.trigger_motor.angle_p,get_trigger_distance,trigger_to_base_distance_set[num_launched]);
         thrust_motor.trigger_motor.give_current= pid_calc(&thrust_motor.trigger_motor.speed_p,thrust_motor.trigger_motor.motor_measure->speed_rpm,thrust_motor.trigger_motor.speed);
     }
-    gimbal_dart.motor_yaw.relative_angle_get= motor_ecd_to_angle_change(gimbal_dart.motor_yaw.motor_measure->ecd,gimbal_dart.motor_yaw.motor_measure->offset_ecd);
-    gimbal_dart.motor_yaw.gyro_set= pid_loop_calc(&gimbal_dart.motor_yaw.angle_p,gimbal_dart.motor_yaw.relative_angle_get,gimbal_dart.motor_yaw.relative_angle_set,180,-180);
-    gimbal_dart.motor_yaw.give_current= pid_calc(&gimbal_dart.motor_yaw.speed_p,gimbal_dart.motor_yaw.motor_measure->speed_rpm,gimbal_dart.motor_yaw.gyro_set);
+//    gimbal_dart.motor_yaw.relative_angle_get= motor_ecd_to_angle_change(gimbal_dart.motor_yaw.motor_measure->ecd,gimbal_dart.motor_yaw.motor_measure->offset_ecd);
+//    gimbal_dart.motor_yaw.gyro_set= pid_loop_calc(&gimbal_dart.motor_yaw.angle_p,gimbal_dart.motor_yaw.relative_angle_get,gimbal_dart.motor_yaw.relative_angle_set,180,-180);
+//    gimbal_dart.motor_yaw.give_current= pid_calc(&gimbal_dart.motor_yaw.speed_p,gimbal_dart.motor_yaw.motor_measure->speed_rpm,gimbal_dart.motor_yaw.gyro_set);
 }
 
 //已完成
@@ -505,25 +786,36 @@ static void dart_control_handle()
     //yaw_control();
     //turn_control();
     drive_control();
-    trigger_control();
-    thrust_motor_angle_control();
-    thrust_motor_move_control();
+    //trigger_control();
+    //thrust_motor_angle_control();
+    //thrust_motor_move_control();
+    //steer_motor_control();
 }
 
+static void steer_motor_control()
+{
+    cnt=rc_ctrl.rc.ch[1]*10;
+    if(cnt>2500)
+    {
+        cnt=2500;
+    }
+    __HAL_TIM_SetCompare(&htim8,TIM_CHANNEL_1,cnt);
+    vTaskDelay(10);
+}
 
 static void thrust_motor_move_control()
 {
-    set_thrust_move_distance += rc_ctrl.rc.ch[1]*0.0005;
-    if(rc_ctrl.rc.ch[1]<20&&rc_ctrl.rc.ch[1]>-20)
+    if(rc_ctrl.rc.ch[4]<20&&rc_ctrl.rc.ch[4]>-20)
     {
-        rc_ctrl.rc.ch[1]=0;
+        rc_ctrl.rc.ch[4]=0;
     }
+    set_thrust_move_distance += rc_ctrl.rc.ch[4]*0.0005;
     get_thrust_move_distance= thrust_move_distance_conversion(thrust_motor.thrust_move_motor.motor_measure->total_ecd);
     thrust_motor.thrust_move_motor.speed_p.set= pid_calc(&thrust_motor.thrust_move_motor.angle_p,
                                                          get_thrust_move_distance,
                                                          set_thrust_move_distance);
     //thrust_motor.thrust_move_motor.speed_p.set=rc_ctrl.rc.ch[2]*0.5;
-    thrust_motor.thrust_move_motor.give_current= -(int16_t)pid_calc(&thrust_motor.thrust_move_motor.speed_p,
+    thrust_motor.thrust_move_motor.give_current= pid_calc(&thrust_motor.thrust_move_motor.speed_p,
                                                           thrust_motor.thrust_move_motor.motor_measure->speed_rpm,
                                                           thrust_motor.thrust_move_motor.speed_p.set);
     //thrust_motor.thrust_move_motor.give_current=(int16_t)thrust_motor.thrust_move_motor.give_current;
@@ -532,7 +824,7 @@ static void thrust_motor_move_control()
 
 static void thrust_motor_angle_control()
 {
-    set_angle_thrust_angle-=rc_ctrl.rc.ch[0]*0.01*0.03f;
+    set_angle_thrust_angle-=rc_ctrl.rc.ch[1]*0.001;
     if(set_angle_thrust_angle<4.59)
     {
         set_angle_thrust_angle = 4.59f;
@@ -562,25 +854,25 @@ static fp32 drive_distance_conversion(int32_t ecd)
 }
 static fp32 thrust_move_distance_conversion(int32_t ecd)
 {
-    return -(fp32)ecd/8196/36*18.34*PI;
+    return (fp32)ecd/8196/36*18.34*PI;
 }
 
 static void trigger_control()
 {
     get_trigger_distance=trigger_distance_conversion(thrust_motor.trigger_motor.motor_measure->total_ecd);
     //init_distance=distance(init_ecd_trigger);
-    if(rc_ctrl.rc.ch[3]<=20&&rc_ctrl.rc.ch[3]>=-20)
+    if(rc_ctrl.rc.ch[1]<=20&&rc_ctrl.rc.ch[1]>=-20)
     {
-        rc_ctrl.rc.ch[3]=0;
+        rc_ctrl.rc.ch[1]=0;
     }
-    set_trigger_distance += rc_ctrl.rc.ch[3]*0.0005;
+    set_trigger_distance += rc_ctrl.rc.ch[1]*0.0005;
     if(set_trigger_distance<= trigger_distance_conversion(init_ecd_trigger)+10)
     {
         set_trigger_distance= trigger_distance_conversion(init_ecd_trigger)+10;
     }
 
     thrust_motor.trigger_motor.speed_p.set= pid_calc(&thrust_motor.trigger_motor.angle_p,
-                                                          get_trigger_distance,
+                                                     get_trigger_distance,
                                                      set_trigger_distance);
     thrust_motor.trigger_motor.give_current= pid_calc(&thrust_motor.trigger_motor.speed_p,
                                                       thrust_motor.trigger_motor.motor_measure->speed_rpm,
@@ -594,12 +886,12 @@ static void drive_control()
 {
     get_drive_right_distance= drive_distance_conversion(launcher_dart.push_motor_r.motor_measure->total_ecd);
     get_drive_left_distance= drive_distance_conversion(launcher_dart.push_motor_l.motor_measure->total_ecd);
-    if(rc_ctrl.rc.ch[2]<=20&&rc_ctrl.rc.ch[2]>=-20)
+    if(rc_ctrl.rc.ch[3]<=20&&rc_ctrl.rc.ch[3]>=-20)
     {
-        rc_ctrl.rc.ch[2]=0;
+        rc_ctrl.rc.ch[3]=0;
     }
-    set_drive_right_distance += rc_ctrl.rc.ch[2]*0.001;
-    set_drive_left_distance -= rc_ctrl.rc.ch[2]*0.001;
+    set_drive_right_distance += rc_ctrl.rc.ch[3]*0.001;
+    set_drive_left_distance -= rc_ctrl.rc.ch[3]*0.001;
     if(set_drive_right_distance >= drive_distance_conversion(init_ecd_drive_right) - 10)
     {
         set_drive_right_distance = drive_distance_conversion(init_ecd_drive_right) - 10;
@@ -641,26 +933,27 @@ static void drive_control()
 
 static void turn_control()
 {
-    //launcher_dart.turn_motor.relative_angle_set-=rc_ctrl.rc.ch[2]*0.01*0.03f;
-    //launcher_dart.turn_motor.relative_angle_get= -motor_ecd_to_angle_change(launcher_dart.turn_motor.motor_measure->ecd,launcher_dart.turn_motor.motor_measure->offset_ecd);
-    launcher_dart.turn_motor.relative_angle_set=turn_motor_angle_set[turn_angle];
-    //launcher_dart.turn_motor.relative_angle_set=69.7850f;
-    if(launcher_dart.turn_motor.relative_angle_set>180)
+    //launcher_dart.turn_motor.angle_p.get-=rc_ctrl.rc.ch[2]*0.01*0.03f;
+    //launcher_dart.turn_motor.angle_p.get= -motor_ecd_to_angle_change(launcher_dart.turn_motor.motor_measure->ecd,launcher_dart.turn_motor.motor_measure->offset_ecd);
+    //launcher_dart.turn_motor.angle_p.get-=rc_ctrl.rc.ch[2]*0.01*0.03f;
+    //launcher_dart.turn_motor.angle_p.get=69.7850f;
+    launcher_dart.turn_motor.angle_p.get=turn_motor_angle_set[turn_angle];
+    if(launcher_dart.turn_motor.angle_p.get>180)
     {
-        launcher_dart.turn_motor.relative_angle_set=launcher_dart.turn_motor.relative_angle_set-360;
+        launcher_dart.turn_motor.angle_p.get=launcher_dart.turn_motor.angle_p.get-360;
     }
-    else if(launcher_dart.turn_motor.relative_angle_set<-180)
+    else if(launcher_dart.turn_motor.angle_p.get<-180)
     {
-        launcher_dart.turn_motor.relative_angle_set=launcher_dart.turn_motor.relative_angle_set+360;
+        launcher_dart.turn_motor.angle_p.get=launcher_dart.turn_motor.angle_p.get+360;
     }
     launcher_dart.turn_motor.gyro_set= pid_loop1_calc(&launcher_dart.turn_motor.angle_p,
-                                                     launcher_dart.turn_motor.relative_angle_get,
-                                                     launcher_dart.turn_motor.relative_angle_set,
-                                                     180,-180);
+                                                      launcher_dart.turn_motor.relative_angle_get,
+                                                      launcher_dart.turn_motor.angle_p.get,
+                                                      180,-180);
     launcher_dart.turn_motor.give_current= -pid_calc(&launcher_dart.turn_motor.speed_p,
-                                                launcher_dart.turn_motor.motor_measure->speed_rpm,
-                                                launcher_dart.turn_motor.gyro_set);
-    if((fabs(launcher_dart.turn_motor.relative_angle_get-launcher_dart.turn_motor.relative_angle_set)<1)&&((turn_angle==0&&flag1==false)||HAL_GetTick()-time_now>1000))
+                                                     launcher_dart.turn_motor.motor_measure->speed_rpm,
+                                                    launcher_dart.turn_motor.gyro_set);
+    if((fabs(launcher_dart.turn_motor.relative_angle_get-launcher_dart.turn_motor.angle_p.get)<1)&&((turn_angle==0&&flag1==false)||HAL_GetTick()-time_now>1000))
     {
         //vTaskDelay(5000);
         turn_angle+=1;
@@ -672,7 +965,7 @@ static void turn_control()
 
 static void yaw_control()
 {
-    gimbal_dart.motor_yaw.relative_angle_set-=rc_ctrl.rc.ch[2]*0.01*0.03f;
+    gimbal_dart.motor_yaw.relative_angle_set-=rc_ctrl.rc.ch[0]*0.01*0.03f;
     if(gimbal_dart.motor_yaw.relative_angle_set>=50.0)
     {
         gimbal_dart.motor_yaw.relative_angle_set=50;
@@ -682,22 +975,22 @@ static void yaw_control()
         gimbal_dart.motor_yaw.relative_angle_set=-51;
     }
     //gimbal_dart.motor_yaw.relative_angle_set=0.96f;
-    gimbal_dart.motor_yaw.gyro_set= pid_loop_calc(&gimbal_dart.motor_yaw.angle_p,gimbal_dart.motor_yaw.relative_angle_get,
-                                    gimbal_dart.motor_yaw.relative_angle_set,
-                                    180,-180);
+    gimbal_dart.motor_yaw.gyro_set= pid_loop_calc(&gimbal_dart.motor_yaw.angle_p,
+                                                  gimbal_dart.motor_yaw.relative_angle_get,
+                                                  gimbal_dart.motor_yaw.relative_angle_set,
+                                                  180,-180);
 
     first_order_filter_cali(&filter_yaw_in,gimbal_dart.motor_yaw.gyro_set);
 
     gimbal_dart.motor_yaw.give_current= -pid_calc(&gimbal_dart.motor_yaw.speed_p,
                                                   gimbal_dart.motor_yaw.motor_measure->speed_rpm,
                                                   filter_yaw_in.out);
-
 }
 
 //已完成
 static void dart_back_handle()
 {
-    //back_trigger_distance+=70;
+
     thrust_motor.trigger_motor.speed_p.set= pid_calc(&thrust_motor.trigger_motor.angle_p,
                                                      get_trigger_distance,
                                                      back_trigger_distance);
@@ -710,8 +1003,6 @@ static void dart_back_handle()
     }
     if(flags.is_trigger_move_ok==true)
     {
-        //back_drive_left_distance+=33;
-        //back_drive_right_distance+=-33;
         launcher_dart.push_motor_l.speed_p.set= pid_calc(&launcher_dart.push_motor_r.angle_p,
                                                          get_drive_left_distance,
                                                          back_drive_left_distance);
@@ -724,15 +1015,27 @@ static void dart_back_handle()
         launcher_dart.push_motor_r.give_current= pid_calc(&launcher_dart.push_motor_r.speed_p,
                                                           launcher_dart.push_motor_r.motor_measure->speed_rpm,
                                                           launcher_dart.push_motor_r.speed_p.set);
-    }
-    if(fabs(get_drive_right_distance-back_drive_right_distance)<1)
-    {
-        flags.is_back_drive_ok=true;
+        if(fabs(get_drive_right_distance-back_drive_right_distance)<1)
+        {
+            flags.is_back_drive_ok=true;
+        }
     }
     if(flags.is_back_drive_ok==true)
     {
-        //back_thrust_move_distance+=2;
-        //back_thrust_angle_angle+=4.6f;
+        launcher_dart.turn_motor.speed_p.set= pid_loop_calc(&launcher_dart.turn_motor.angle_p,
+                                                            launcher_dart.turn_motor.angle_p.get,
+                                                            turn_motor_angle_set[turn_angle],
+                                                            180,-180);
+        launcher_dart.turn_motor.give_current= -pid_calc(&launcher_dart.turn_motor.speed_p,
+                                                        launcher_dart.turn_motor.motor_measure->speed_rpm,
+                                                        launcher_dart.turn_motor.speed_p.set);
+        if(fabs(launcher_dart.turn_motor.angle_p.get-turn_motor_angle_set[turn_angle])<0.5)
+        {
+            flags.is_back_turn_ok=true;
+        }
+    }
+    if(flags.is_back_turn_ok==true)
+    {
         thrust_motor.thrust_move_motor.speed_p.set= pid_calc(&thrust_motor.thrust_move_motor.angle_p,
                                                              get_thrust_move_distance,
                                                              back_thrust_move_distance);
@@ -746,12 +1049,12 @@ static void dart_back_handle()
         thrust_motor.thrust_angle_motor.give_current= pid_calc(&thrust_motor.thrust_angle_motor.speed_p,
                                                                thrust_motor.thrust_angle_motor.motor_measure->speed_rpm,
                                                                thrust_motor.thrust_angle_motor.speed_p.set);
-    }
-    if(fabs(back_thrust_move_distance-get_thrust_move_distance)<1 && fabs(back_thrust_angle_angle-get_angle_thrust_angle)<1)
-    {
-        flags.is_thrust_angle_ok=true;
-        flags.is_thrust_move_ok=true;
-        flags.is_back_ok=true;
+        if(fabs(back_thrust_move_distance-get_thrust_move_distance)<1 && fabs(back_thrust_angle_angle-get_angle_thrust_angle)<1)
+        {
+            flags.is_thrust_angle_ok=true;
+            flags.is_thrust_move_ok=true;
+            flags.is_back_ok=true;
+        }
     }
     if(flags.is_back_ok==true)
     {
@@ -760,86 +1063,10 @@ static void dart_back_handle()
         flags.is_thrust_angle_ok=false;
         flags.is_thrust_move_ok=false;
         flags.is_back_ok=false;
+        flags.is_back_turn_ok=false;
     }
-
-
-//    gimbal_dart.motor_yaw.angle_p.set=YAW_BACK_ANGLE;
-//    gimbal_dart.motor_yaw.speed_p.set= pid_loop_calc(&gimbal_dart.motor_yaw.angle_p,
-//                                                     gimbal_dart.motor_yaw.relative_angle_get,
-//                                                     gimbal_dart.motor_yaw.angle_p.set,
-//                                                     180,-180);
-//    gimbal_dart.motor_yaw.give_current= -pid_calc(&gimbal_dart.motor_yaw.speed_p,
-//                                                 gimbal_dart.motor_yaw.motor_measure->speed_rpm,
-//                                                 gimbal_dart.motor_yaw.speed_p.set);
-//
-//    launcher_dart.push_motor_r.speed_p.set=pid_calc(&launcher_dart.push_motor_r.angle_p,
-//                      launcher_dart.push_motor_r.motor_measure->total_ecd,
-//                      init_ecd_drive);
-//    launcher_dart.push_motor_r.give_current=(int16_t) pid_calc(&launcher_dart.push_motor_r.speed_p,
-//                                                launcher_dart.push_motor_r.rpm_get,
-//                                                launcher_dart.push_motor_r.speed_p.set);
-//
-//    if(abs(launcher_dart.push_motor_r.motor_measure->total_ecd-init_ecd_drive)<2)
-//    {
-//        flags.is_back_drive_ok=true;
-//    }
-//
-//    if(flags.is_back_drive_ok==true)
-//    {
-//        launcher_dart.turn_motor.relative_angle_get= motor_ecd_to_angle_change(launcher_dart.turn_motor.motor_measure->ecd,launcher_dart.turn_motor.motor_measure->offset_ecd);
-//        launcher_dart.turn_motor.relative_angle_set=turn_motor_angle_set[turn_angle];
-//        launcher_dart.turn_motor.gyro_set= pid_loop_calc(&launcher_dart.turn_motor.angle_p,launcher_dart.turn_motor.relative_angle_get,
-//                                              launcher_dart.turn_motor.relative_angle_set,180,-180);
-//        launcher_dart.turn_motor.give_current= pid_calc_my(&launcher_dart.turn_motor.speed_p,launcher_dart.turn_motor.motor_measure->speed_rpm,launcher_dart.turn_motor.gyro_set);
-//        if(fabs(launcher_dart.turn_motor.relative_angle_get-launcher_dart.turn_motor.relative_angle_set)<0.1)
-//        {
-//            flags.is_turn_angle_ok=true;
-//        }
-//    }
-//
-//    if(flags.is_turn_angle_ok==true)
-//    {
-//        thrust_motor.thrust_angle_motor.angle_p.get= motor_ecd_to_angle_change(thrust_motor.thrust_angle_motor.motor_measure->ecd,thrust_motor.thrust_angle_motor.motor_measure->offset_ecd);
-//        thrust_motor.thrust_angle_motor.angle_p.set=thrust_motor_angle_set[free_mode];
-//        thrust_motor.thrust_angle_motor.speed= pid_loop_calc(&thrust_motor.thrust_angle_motor.angle_p,thrust_motor.thrust_angle_motor.angle_p.get,thrust_motor.thrust_angle_motor.angle_p.set,180,-180);
-//        thrust_motor.thrust_angle_motor.give_current= pid_calc(&thrust_motor.thrust_angle_motor.speed_p,thrust_motor.thrust_angle_motor.motor_measure->speed_rpm,thrust_motor.thrust_angle_motor.speed);
-//        if(fabs(thrust_motor.thrust_angle_motor.angle_p.get-thrust_motor.thrust_angle_motor.angle_p.get)<0.1)
-//        {
-//            flags.is_thrust_angle_ok=true;
-//        }
-//    }
-//
-//    if(flags.is_thrust_angle_ok==true)
-//    {
-//        thrust_motor.thrust_move_motor.speed= pid_calc(&thrust_motor.thrust_move_motor.angle_p,thrust_motor.thrust_move_motor.motor_measure->total_ecd,init_ecd_thrust_move);
-//        thrust_motor.thrust_move_motor.give_current= pid_calc(&thrust_motor.thrust_move_motor.speed_p,thrust_motor.thrust_move_motor.motor_measure->speed_rpm,thrust_motor.thrust_move_motor.speed);
-//        if(abs(thrust_motor.thrust_move_motor.motor_measure->total_ecd-init_ecd_thrust_move)<5)
-//        {
-//            flags.is_thrust_move_ok=true;
-//        }
-//    }
-//
-//    if(flags.is_thrust_move_ok==true)
-//    {
-//        thrust_motor.trigger_motor.speed= pid_calc(&thrust_motor.trigger_motor.angle_p,thrust_motor.trigger_motor.motor_measure->total_ecd,init_ecd_trigger);
-//        thrust_motor.trigger_motor.give_current= pid_calc(&thrust_motor.trigger_motor.speed_p,thrust_motor.trigger_motor.motor_measure->speed_rpm,thrust_motor.trigger_motor.speed);
-//        if(abs(thrust_motor.trigger_motor.motor_measure->ecd-init_ecd_trigger)<1)
-//        {
-//            flags.is_trigger_move_ok=1;
-//        }
-//    }
-//
-//    if(flags.is_trigger_move_ok==true)
-//    {
-//        flags.is_back_ok=true;
-//        flags.is_back_drive_ok=false;
-//        flags.is_turn_angle_ok=false;
-//        flags.is_thrust_angle_ok=false;
-//        flags.is_thrust_move_ok=false;
-//    }
 }
 
-//已经完成
 static void dart_relax_handle()
 {
     launcher_dart.push_motor_r.give_current=0;
@@ -850,9 +1077,10 @@ static void dart_relax_handle()
     thrust_motor.trigger_motor.give_current=0;
     gimbal_dart.motor_yaw.give_current=0;
 }
-//已完成
+
 static void dart_init()
 {
+
     launcher_dart.push_motor_r.motor_measure=&motor_3508[0];
     launcher_dart.push_motor_l.motor_measure=&motor_3508[1];
     launcher_dart.turn_motor.motor_measure=&motor_6020[1];
@@ -971,12 +1199,12 @@ static void dart_init()
     gimbal_dart.motor_yaw.motor_measure->offset_ecd=1357;
     launcher_dart.turn_motor.motor_measure->offset_ecd=5459;
 
-    turn_motor_angle_set[0]=60.2490f;
-    turn_motor_angle_set[1]=114.3017f;
-    turn_motor_angle_set[2]=168.6044f;
-    turn_motor_angle_set[3]=-120.0146f;
-    turn_motor_angle_set[4]=-60.60058f;
-    turn_motor_angle_set[5]=-1.5380f;
+    turn_motor_angle_set[0]=-178.374f;
+    turn_motor_angle_set[1]=120.4980f;
+    turn_motor_angle_set[2]=63.5328f;
+    turn_motor_angle_set[3]=-2.768f;
+    turn_motor_angle_set[4]=-56.689f;
+    turn_motor_angle_set[5]=-125.1123f;
 
 }
 //已完成
@@ -1036,18 +1264,25 @@ static void dart_mode_set()
     }
     if(gimbal_dart.mode==DART_READY)
     {
-        if(num_launched==0&&rc_ctrl.rc.ch[4]<-500&&flags.is_ready_ok==1)
-        {
-                gimbal_dart.last_mode=gimbal_dart.mode;
-                gimbal_dart.mode=DART_LAUNCH;
-                flags.is_ready_ok=0;
-        }else
-        if(num_launched>0&&!switch_is_mid(rc_ctrl.rc.s[RC_s_R])&&flags.is_ready_ok==1)
+        //num_launched==0记得加回来
+        if(switch_is_up(rc_ctrl.rc.s[RC_s_L])&&flags.is_ready_ok==1)
         {
             gimbal_dart.last_mode=gimbal_dart.mode;
-            gimbal_dart.mode=DART_TRIGGER;
+            gimbal_dart.mode=DART_LAUNCH;
+            flags.is_ready_ok=0;
+        }else
+        if(switch_is_up(rc_ctrl.rc.s[RC_s_L])&&flags.is_ready_ok==1)
+        {
+            gimbal_dart.last_mode=gimbal_dart.mode;
+            gimbal_dart.mode=DART_LAUNCH;
             flags.is_ready_ok=0;
         }
+//        if(num_launched>0&&!switch_is_mid(rc_ctrl.rc.s[RC_s_R])&&flags.is_ready_ok==1)
+//        {
+//            gimbal_dart.last_mode=gimbal_dart.mode;
+//            gimbal_dart.mode=DART_TRIGGER;
+//            flags.is_ready_ok=0;
+//        }
     }
     if(gimbal_dart.mode==DART_TRIGGER)
     {
@@ -1063,11 +1298,11 @@ static void dart_data_update()
 {
     //gimbal_dart.motor_yaw.absolute_angle_get=INS_angle[0]*MOTOR_RAD_TO_ANGLE;
     gimbal_dart.motor_yaw.relative_angle_get= -motor_ecd_to_angle_change(gimbal_dart.motor_yaw.motor_measure->ecd,gimbal_dart.motor_yaw.motor_measure->offset_ecd);
-    launcher_dart.turn_motor.relative_angle_get= -motor_ecd_to_angle_change(launcher_dart.turn_motor.motor_measure->ecd,launcher_dart.turn_motor.motor_measure->offset_ecd);
+    launcher_dart.turn_motor.angle_p.get= -motor_ecd_to_angle_change(launcher_dart.turn_motor.motor_measure->ecd,launcher_dart.turn_motor.motor_measure->offset_ecd);
     thrust_motor.thrust_angle_motor.angle_p.get=ecd_to_angle(thrust_motor.thrust_angle_motor.motor_measure->total_ecd);
     get_drive_right_distance= drive_distance_conversion(launcher_dart.push_motor_r.motor_measure->total_ecd);
     get_drive_left_distance= drive_distance_conversion(launcher_dart.push_motor_l.motor_measure->total_ecd);
     get_trigger_distance=trigger_distance_conversion(thrust_motor.trigger_motor.motor_measure->total_ecd);
-    get_thrust_move_distance= ecd_to_angle(thrust_motor.thrust_angle_motor.motor_measure->total_ecd);
+    get_thrust_move_distance= thrust_move_distance_conversion(thrust_motor.thrust_move_motor.motor_measure->total_ecd);
     get_angle_thrust_angle= ecd_to_angle(thrust_motor.thrust_angle_motor.motor_measure->total_ecd);
 }

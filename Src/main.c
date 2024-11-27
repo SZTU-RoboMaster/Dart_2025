@@ -76,6 +76,7 @@
 #include "remote.h"
 #include "referee.h"
 #include "bsp_laser.h"
+#include "Auto.h"
 //#include "remote_control.h"
 //
 #include "Calibrate.h"
@@ -92,7 +93,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+extern uint8_t usart1_receive_buf[200];
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -132,6 +133,7 @@ void MX_FREERTOS_Init(void);
   */
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -180,20 +182,21 @@ int main(void)
     can_filter_init();
     delay_init();
     usart6_init(&usart6_buf[0], REFEREE_BUFFER_SIZE);
-
+    usart1_init(&usart1_receive_buf[0],200);
     cali_param_init();
     remote_control_init();
     laser_on();
 //    usart1_tx_dma_init();
   /* USER CODE END 2 */
 
-  /* Call init function for freertos objects (in freertos.c) */
+  /* Call init function for freertos objects (in cmsis_os2.c) */
   MX_FREERTOS_Init();
 
   /* Start scheduler */
   osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)

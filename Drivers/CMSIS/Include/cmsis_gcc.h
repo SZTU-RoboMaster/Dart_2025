@@ -21,7 +21,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//typedef int int32_t;
+
 #ifndef __CMSIS_GCC_H
 #define __CMSIS_GCC_H
 

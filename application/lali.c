@@ -8,7 +8,7 @@
 #include "stdio.h"
 
 uint8_t buffer[6];
-float value;
+float value_lali;
 
 
 void lali_task(void const* pvParameters)
@@ -29,7 +29,8 @@ void lali_task(void const* pvParameters)
                 xiaoshu = xiaoshu * 10 + cnt;
             }
         }
-        value = zhengshu + (float) xiaoshu / 1000;
+        value_lali = zhengshu + (float) xiaoshu / 1000;
+        HAL_UART_Transmit(&huart1, buffer, 6, HAL_MAX_DELAY);
         vTaskDelay(10);
     }
 }

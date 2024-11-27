@@ -121,6 +121,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
             case CAN_2006_THRUST_MOVE: get_motor_measure(&motor_2006[1], rx_data);
                 get_motor_round_cnt(motor_2006[1]);
                 break;
+            case CAN_6020_TURN:get_motor_measure(&motor_6020[1],rx_data);
+                break;
 //
 //            case  CAN_UP_2006: get_motor_measure(&motor_2006_measure[0], rx_data);
 //                get_motor_round_cnt(motor_2006_measure[0]);

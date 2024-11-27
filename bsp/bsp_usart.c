@@ -3,9 +3,53 @@
 
 extern UART_HandleTypeDef huart1;
 extern DMA_HandleTypeDef hdma_usart1_tx;
+extern DMA_HandleTypeDef hdma_usart1_rx;
 extern UART_HandleTypeDef huart6;
 extern DMA_HandleTypeDef hdma_usart6_rx;
 extern DMA_HandleTypeDef hdma_usart6_tx;
+
+void usart1_init(uint8_t*rx_buf,uint16_t dma_buf_num)
+{
+
+    //enable the DMA transfer for the receiver and tramsmit request
+    //使能DMA串口接收和发送
+    SET_BIT(huart1.Instance->CR3, USART_CR3_DMAR);
+    SET_BIT(huart1.Instance->CR3, USART_CR3_DMAT);
+
+//    __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);//空闲中断
+    __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);//空闲中断
+
+    __HAL_DMA_DISABLE(&hdma_usart1_rx);
+
+    while (hdma_usart1_rx.Instance->CR&DMA_SxCR_EN)
+    {
+        __HAL_DMA_DISABLE(&hdma_usart1_rx);
+    }
+
+    __HAL_DMA_CLEAR_FLAG(&hdma_usart1_rx,DMA_HISR_TCIF5);
+
+    hdma_usart1_rx.Instance->PAR=(uint32_t)&(USART1->DR);
+    hdma_usart1_rx.Instance->M0AR=(uint32_t)(rx_buf);
+    hdma_usart1_rx.Instance->NDTR=dma_buf_num;
+
+    __HAL_DMA_ENABLE(&hdma_usart1_rx);//使能串口dma接收
+
+
+    //disable DMA
+    //失效DMA
+    __HAL_DMA_DISABLE(&hdma_usart1_tx);
+
+    while(hdma_usart1_tx.Instance->CR & DMA_SxCR_EN)
+    {
+        __HAL_DMA_DISABLE(&hdma_usart1_tx);
+    }
+
+    hdma_usart1_tx.Instance->PAR = (uint32_t) & (USART1->DR);
+    hdma_usart1_tx.Instance->M0AR = (uint32_t)(NULL);
+    hdma_usart1_tx.Instance->NDTR = 0;
+
+
+}
 
 void usart1_tx_dma_init(void)
 {

@@ -32,6 +32,7 @@
 #include "Gimbal.h"
 #include "dart.h"
 #include "lali.h"
+#include "Auto.h"
 //#include "detect_task.h"
 #include "Gimbal.h"
 //#include "INS_task.h"
@@ -64,6 +65,7 @@ osThreadId usb_task_handle;
 osThreadId decode_task_handle;
 osThreadId dartTaskHandle;
 osThreadId laliTaskHandle;
+osThreadId AutoTaskHandle;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -179,8 +181,11 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(dartTask, dart_task, osPriorityHigh, 0, 512);
     dartTaskHandle = osThreadCreate(osThread(dartTask), NULL);
 
-//    osThreadDef(laliTask, lali_task, osPriorityHigh, 0, 512);
-//    dartTaskHandle = osThreadCreate(osThread(laliTask), NULL);
+    osThreadDef(AutoTask, Auto_task, osPriorityHigh, 0, 512);
+    AutoTaskHandle = osThreadCreate(osThread(AutoTask), NULL);
+
+    osThreadDef(laliTask, lali_task, osPriorityHigh, 0, 512);
+    laliTaskHandle = osThreadCreate(osThread(laliTask), NULL);
 
 //    osThreadDef(refereeTask,referee_task,osPriorityHigh,0,256);
 //    refereeTaskHandle = osThreadCreate(osThread(refereeTask), NULL);
