@@ -35,7 +35,7 @@
 #define TURN_SPEED_MAX_IOUT   500.0f
 
 //推动电机角度PID
-#define DRIVE_ANGLE_PID_KP     1600.0f//1600
+#define DRIVE_ANGLE_PID_KP     500.0f//1600
 #define DRIVE_ANGLE_PID_KI     0.0f//1
 #define DRIVE_ANGLE_PID_KD     0.0f
 #define DRIVE_ANGLE_MAX_OUT    3000.0f
