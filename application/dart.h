@@ -23,8 +23,8 @@
 
 //换弹电机角度PID
 #define TURN_ANGLE_PID_KP     25.0f//5
-#define TURN_ANGLE_PID_KI     0.5f//0.1
-#define TURN_ANGLE_PID_KD     10.0f//130
+#define TURN_ANGLE_PID_KI     1.0f//0.1
+#define TURN_ANGLE_PID_KD     160.0f//130
 #define TURN_ANGLE_MAX_OUT    360.0f
 #define TURN_ANGLE_MAX_IOUT   100.0f
 //换弹电机速度PID
@@ -61,7 +61,7 @@
 #define TRIGGER_MOVE_SPEED_MAX_IOUT   1000.0f
 
 //推弹角度电机角度PID
-#define THRUST_ANGLE_ANGLE_PID_KP     300.0f
+#define THRUST_ANGLE_ANGLE_PID_KP     100.0f
 #define THRUST_ANGLE_ANGLE_PID_KI     0.0f
 #define THRUST_ANGLE_ANGLE_PID_KD     0.0f
 #define THRUST_ANGLE_ANGLE_MAX_OUT    3000.0f
@@ -156,6 +156,10 @@ struct All_Flag
     bool is_ready2_drive_goal_ok;
     bool is_ready2_drive_back_ok;
     bool is_ready2_thrust_back_ok;
+    bool is_ready2_trigger_off_ok;
+    bool is_ready2_turn_angle_ok_init;
+    bool is_ready2_turn_angle_ok_load;
+    bool is_ready2_turn_angle_ok_end;
 };
 
 enum trigger_angle
