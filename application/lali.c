@@ -14,7 +14,7 @@ float value_lali;
 void lali_task(void const* pvParameters)
 {
     while(1) {
-        HAL_UART_Receive(&huart1, buffer, 6, HAL_MAX_DELAY);
+        //HAL_UART_Receive(&huart1, buffer, 6, HAL_MAX_DELAY);
         uint8_t xiaoshu = 0, zhengshu = 0, flag = 0;
         for (uint8_t i = 0; i < 6; i++) {
             if (buffer[i] == '.') {
@@ -30,7 +30,7 @@ void lali_task(void const* pvParameters)
             }
         }
         value_lali = zhengshu + (float) xiaoshu / 1000;
-        HAL_UART_Transmit(&huart1, buffer, 6, HAL_MAX_DELAY);
+        //HAL_UART_Transmit(&huart1, buffer, 6, HAL_MAX_DELAY);
         vTaskDelay(10);
     }
 }

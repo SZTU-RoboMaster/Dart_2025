@@ -9,33 +9,33 @@
 #define DART_TASK_INIT_TIME 201
 
 //YAW轴角度环PID
-#define YAW_ANGLE_PID_KP     50.0f//8
-#define YAW_ANGLE_PID_KI     0.001f//0
-#define YAW_ANGLE_PID_KD     800.0f//235
+#define YAW_ANGLE_PID_KP     1000.0f//8
+#define YAW_ANGLE_PID_KI     0.1f//00.
+#define YAW_ANGLE_PID_KD     900.0f//235
 #define YAW_ANGLE_MAX_OUT    3000.0f
 #define YAW_ANGLE_MAX_IOUT   3000.0f
 //YAW轴速度环PID
-#define YAW_SPEED_PID_KP     150.0f//120
+#define YAW_SPEED_PID_KP     5.0f//120
 #define YAW_SPEED_PID_KI     0.0f//0.0f
 #define YAW_SPEED_PID_KD     0.0f//30
 #define YAW_SPEED_MAX_OUT    25000.0f
 #define YAW_SPEED_MAX_IOUT   6000.0f
 
 //换弹电机角度PID
-#define TURN_ANGLE_PID_KP     25.0f//5
-#define TURN_ANGLE_PID_KI     1.0f//0.1
-#define TURN_ANGLE_PID_KD     160.0f//130
+#define TURN_ANGLE_PID_KP     100.0f//25
+#define TURN_ANGLE_PID_KI     0.5f//1
+#define TURN_ANGLE_PID_KD     750.0f//160
 #define TURN_ANGLE_MAX_OUT    360.0f
-#define TURN_ANGLE_MAX_IOUT   100.0f
+#define TURN_ANGLE_MAX_IOUT   500.0f
 //换弹电机速度PID
-#define TURN_SPEED_PID_KP     10.0f//80
-#define TURN_SPEED_PID_KI     0.0f//0.02
-#define TURN_SPEED_PID_KD     0.0f//55
+#define TURN_SPEED_PID_KP     15.0f//10
+#define TURN_SPEED_PID_KI     0.0f//0
+#define TURN_SPEED_PID_KD     0.0f//0
 #define TURN_SPEED_MAX_OUT    15000.0f
 #define TURN_SPEED_MAX_IOUT   500.0f
 
 //推动电机角度PID
-#define DRIVE_ANGLE_PID_KP     500.0f//1600
+#define DRIVE_ANGLE_PID_KP     500.0f//500
 #define DRIVE_ANGLE_PID_KI     0.0f//1
 #define DRIVE_ANGLE_PID_KD     0.0f
 #define DRIVE_ANGLE_MAX_OUT    3000.0f
@@ -160,6 +160,7 @@ struct All_Flag
     bool is_ready2_turn_angle_ok_init;
     bool is_ready2_turn_angle_ok_load;
     bool is_ready2_turn_angle_ok_end;
+    bool is_ready2_trigger_open_ok;
 };
 
 enum trigger_angle
