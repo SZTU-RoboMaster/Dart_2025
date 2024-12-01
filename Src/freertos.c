@@ -184,8 +184,8 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(AutoTask, Auto_task, osPriorityHigh, 0, 512);
     AutoTaskHandle = osThreadCreate(osThread(AutoTask), NULL);
 
-    osThreadDef(laliTask, lali_task, osPriorityHigh, 0, 512);
-    laliTaskHandle = osThreadCreate(osThread(laliTask), NULL);
+//    osThreadDef(laliTask, lali_task, osPriorityHigh, 0, 512);
+//    laliTaskHandle = osThreadCreate(osThread(laliTask), NULL);
 
 //    osThreadDef(refereeTask,referee_task,osPriorityHigh,0,256);
 //    refereeTaskHandle = osThreadCreate(osThread(refereeTask), NULL);

@@ -19,7 +19,7 @@ struct Vision_frame
 
 struct Vision_info_get
 {
-    struct Vision_frame frame_header;
+    uint8_t SOF;
     union {
         uint8_t data[4];
         fp32 value;
@@ -30,6 +30,9 @@ struct Vision_info_get
         uint16_t len;
     }data_length;
     uint8_t seq;
+    uint8_t CRC8;
+    uint8_t cmd_id;
+    uint16_t CRC16;
 };
 
 #endif //DEMO1_AUTO_H
