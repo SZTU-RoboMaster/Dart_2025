@@ -37,6 +37,7 @@ enum
 {
     LAST  = 0,
     NOW   = 1,
+    INIT  = 2
 };
 
 /**
@@ -70,6 +71,36 @@ typedef struct
 
 } pid_t;
 
+typedef struct
+{
+    /* p、i、d参数 */
+    float p;
+    float i;
+    float d;
+
+    /* 目标值、反馈值、误差值 */
+    float set;
+    float get;
+    float err[3];
+
+    /* p、i、d各项计算出的输出 */
+    float pout;
+    float iout;
+    float dout;
+
+    /* pid公式计算出的总输出 */
+    float out;
+
+    /* pid最大输出限制  */
+    uint32_t max_output;
+
+    /* pid积分输出项限幅 */
+    uint32_t integral_limit;
+
+} pid_increment_t;
+
+
+
 /**
   * @brief     PID 初始化函数
   * @param[in] pid: PID 结构体
@@ -99,4 +130,8 @@ extern float pid_calc_balance(pid_t *pid, float get, float set,float gyro_y);
 float pid_calc_my(pid_t *pid, float get, float set);
 extern float pid_loop_calc(pid_t *pid,float get,float set,float max_value,float min_value);
 float pid_loop1_calc(pid_t *pid,float get,float set,float max_value,float min_value);
+float pid_loop_calc1(pid_t *pid,float get,float set,float max_value,float min_value);
+void pid_increment_init(pid_increment_t *pid, uint32_t max_out, uint32_t intergral_limit,float kp, float ki, float kd);
+float pid_increment_calc(pid_increment_t *pid,float get,float set);
+float pid_calc_KI_Separation(pid_t* pid,float get,float set,float err_threshold);
 #endif

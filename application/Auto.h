@@ -10,6 +10,7 @@
 extern void Auto_task(void const* pvParameters);
 #define VISION_BUFFER_SIZE 200 //字节缓冲区长度
 #define VISION_BUFFER_SEND 20
+extern struct Vision_info_get Vision_info;
 
 struct Vision_frame
 {

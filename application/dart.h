@@ -22,28 +22,44 @@
 #define YAW_SPEED_MAX_IOUT   6000.0f
 
 //换弹电机角度PID
-#define TURN_ANGLE_PID_KP     170.0f//100
-#define TURN_ANGLE_PID_KI     0.2f//0.5
-#define TURN_ANGLE_PID_KD     650.0f//750
+#define TURN_ANGLE_PID_KP_3     5.5f//5.5
+#define TURN_ANGLE_PID_KI_3     0.04f//0.04
+#define TURN_ANGLE_PID_KD_3     400.0f//400
+#define TURN_ANGLE_PID_KP_2     10.0f//125
+#define TURN_ANGLE_PID_KI_2     0.1f//1
+#define TURN_ANGLE_PID_KD_2    400.0f//400
+#define TURN_ANGLE_PID_KP_1     8.0f//125
+#define TURN_ANGLE_PID_KI_1     0.05f//1
+#define TURN_ANGLE_PID_KD_1     400.0f//400
+#define TURN_ANGLE_PID_KP_0     15.0f//125
+#define TURN_ANGLE_PID_KI_0     0.05f//1
+#define TURN_ANGLE_PID_KD_0     400.0f//400
 #define TURN_ANGLE_MAX_OUT    360.0f
-#define TURN_ANGLE_MAX_IOUT   500.0f
+#define TURN_ANGLE_MAX_IOUT   1000.0f
 //换弹电机速度PID
-#define TURN_SPEED_PID_KP     20.0f//15
+#define TURN_SPEED_PID_KP_2     15.0f//7.5
+#define TURN_SPEED_PID_KP_3     20.0f
 #define TURN_SPEED_PID_KI     0.0f//0
 #define TURN_SPEED_PID_KD     0.0f//0
 #define TURN_SPEED_MAX_OUT    15000.0f
 #define TURN_SPEED_MAX_IOUT   500.0f
 
 //推动电机角度PID
-#define DRIVE_ANGLE_PID_KP     500.0f//500
-#define DRIVE_ANGLE_PID_KI     0.0f//1
-#define DRIVE_ANGLE_PID_KD     0.0f
+#define DRIVE_ANGLE_left_PID_KP     500.0f//500
+#define DRIVE_ANGLE_left_PID_KI     0.0f//0
+#define DRIVE_ANGLE_left_PID_KD     0.0f
+#define DRIVE_ANGLE_right_PID_KP     0.0f//500
+#define DRIVE_ANGLE_right_PID_KI     0.0f//1
+#define DRIVE_ANGLE_right_PID_KD     0.0f
 #define DRIVE_ANGLE_MAX_OUT    3000.0f
 #define DRIVE_ANGLE_MAX_IOUT   3000.0f
 //推动电机速度PID
-#define DRIVE_SPEED_PID_KP     10.0f//10
-#define DRIVE_SPEED_PID_KI     0.0f
-#define DRIVE_SPEED_PID_KD     0.0f
+#define DRIVE_SPEED_left_PID_KP     10.0f//10
+#define DRIVE_SPEED_left_PID_KI     0.0f
+#define DRIVE_SPEED_left_PID_KD     0.0f
+#define DRIVE_SPEED_right_PID_KP     0.0f//10
+#define DRIVE_SPEED_right_PID_KI     0.0f
+#define DRIVE_SPEED_right_PID_KD     0.0f
 #define DRIVE_SPEED_MAX_OUT    16000.0f
 #define DRIVE_SPEED_MAX_IOUT   6000.0f
 
@@ -105,6 +121,14 @@ enum Fire_Mode{
     FIRE_ON=1
 };
 
+struct Dm4310
+{
+    uint32_t id;
+    fp32 pos_r;
+    fp32 angular_vel;
+    fp32 torque;
+};
+
 struct Launch_t{
     enum Fire_Mode mode;
     enum Fire_Mode last_mode;
@@ -113,6 +137,7 @@ struct Launch_t{
 
     motor_6020_t turn_motor;//换弹电机
 };
+
 
 struct Gimbal_t{
     enum Dart_Mode mode;
@@ -161,6 +186,7 @@ struct All_Flag
     bool is_ready2_turn_angle_ok_load;
     bool is_ready2_turn_angle_ok_end;
     bool is_ready2_trigger_open_ok;
+    bool is_ready2_turn_continue_ok;
 };
 
 enum trigger_angle
@@ -183,5 +209,8 @@ enum Dart_goal{
 
 extern void dart_task(void const*pvParameters);
 
+extern struct Launch_t launcher_dart;
+extern struct Gimbal_t gimbal_dart;
+extern struct Thrust_t thrust_motor;
 
 #endif //DEMO1_DART_H

@@ -48,7 +48,7 @@ motor_measure_t motor_2006[3];
 motor_measure_t motor_6020[2];
 
 motor_measure_t motor_2006_measure[3];
-
+extern void dm8009_can_msg_unpack(uint32_t id, uint8_t data[]);
 
 #if isBalance
 motor_measure_t motor_left_measure;
@@ -111,6 +111,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
         }
     }
     if (hcan == &hcan1) {
+        dm8009_can_msg_unpack(rx_header.StdId,rx_data);
         switch (rx_header.StdId){
             case CAN_6020_YAW: get_motor_measure(&motor_6020[0], rx_data);
                 break;
@@ -122,11 +123,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
                 get_motor_round_cnt(motor_2006[1]);
                 break;
             case CAN_6020_TURN:get_motor_measure(&motor_6020[1],rx_data);
+                get_motor_round_cnt(motor_6020[1]);
                 break;
-//
-//            case  CAN_UP_2006: get_motor_measure(&motor_2006_measure[0], rx_data);
-//                get_motor_round_cnt(motor_2006_measure[0]);
-//                break;
 
             default: {
                 break;
@@ -178,6 +176,24 @@ fp32 motor_ecd_to_angle_change(uint16_t ecd,uint16_t offset_ecd)
         }
     }
     return (fp32)tmp/8192.f*360;
+}
+
+uint32_t get_can1_free_mailbox() {
+    if ((hcan1.Instance->TSR & CAN_TSR_TME0) != RESET) {
+        return CAN_TX_MAILBOX0;
+    } else if ((hcan1.Instance->TSR & CAN_TSR_TME1)
+               != RESET) { return CAN_TX_MAILBOX1; }
+    else if ((hcan1.Instance->TSR & CAN_TSR_TME2) != RESET) { return CAN_TX_MAILBOX2; }
+    else { return 0; }
+}
+
+uint32_t get_can2_free_mailbox() {
+    if ((hcan2.Instance->TSR & CAN_TSR_TME0) != RESET) {
+        return CAN_TX_MAILBOX0;
+    } else if ((hcan2.Instance->TSR & CAN_TSR_TME1)
+               != RESET) { return CAN_TX_MAILBOX1; }
+    else if ((hcan2.Instance->TSR & CAN_TSR_TME2) != RESET) { return CAN_TX_MAILBOX2; }
+    else { return 0; }
 }
 
 

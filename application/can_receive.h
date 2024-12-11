@@ -34,7 +34,7 @@ typedef enum
     CAN_MOTOR_0x1FF_ID = 0x1FF,
     //0x1FF对应的电机的ID
 
-
+    TURN_MOTOR_ID = 0x0A,
 
     //电机控制 发送ID
     CAN_MOTOR_0x2FF_ID = 0x2FF,
@@ -46,7 +46,10 @@ typedef enum
     CAN_3508_DRIVE_LEFT=0x208,
     CAN_2006_THRUST_ANGLE=0x207,
     CAN_2006_THRUST_MOVE=0x208,
-    CAN_6020_TURN=0x206
+    CAN_6020_TURN=0x206,
+
+    CAN_DM4310_TURN =0x15
+
 
 
 } can_msg_id_e;
@@ -116,6 +119,7 @@ typedef struct
 }motor_6020_t;
 
 
+
 typedef struct
 {
     motor_measure_t *motor_measure;
@@ -167,5 +171,7 @@ extern fp32 motor_ecd_to_rad_change(uint16_t ecd, uint16_t offset_ecd);
 extern fp32 motor_ecd_to_angle_change(uint16_t ecd,uint16_t offset_ecd);
 
 extern void CAN_cmd_communication(CAN_TYPE can_type,can_msg_id_e CMD_ID,fp32 vx,fp32 vy);
+extern uint32_t get_can1_free_mailbox();
+extern uint32_t get_can2_free_mailbox();
 
 #endif //AVG_INFANTRY_CAN_RECEIVE_H

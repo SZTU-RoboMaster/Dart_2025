@@ -8,10 +8,13 @@
 #include "stdio.h"
 #include "Auto.h"
 #include "CRC8_CRC16.h"
+#include "pid.h"
 
 extern UART_HandleTypeDef huart1;
 uint8_t usart1_receive_buf[14];
 struct Vision_info_get Vision_info;
+
+extern struct Launch_t launcher_dart;
 
 //bool_t Vision_read_data(uint8_t *ReadFromUsart)
 //{
@@ -85,7 +88,7 @@ void Auto_task(void const* pvParameters)
             Vision_info.yaw.data[2] = usart1_receive_buf[9];
             Vision_info.yaw.data[3] = usart1_receive_buf[10];
             Vision_info.target_lock = (int8_t) usart1_receive_buf[11];
-            //memset(&usart1_receive_buf[0],0,14);
+            memset(&usart1_receive_buf[0],0,14);
         }
     }
 }

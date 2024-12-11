@@ -59,6 +59,17 @@ void pid_init(pid_t *pid, uint32_t max_out, uint32_t intergral_limit, \
     pid->d = kd;
 }
 
+void pid_increment_init(pid_increment_t *pid, uint32_t max_out, uint32_t intergral_limit, \
+              float kp, float ki, float kd)
+{
+    pid->integral_limit = intergral_limit;
+    pid->max_output     = max_out;
+
+    pid->p = kp;
+    pid->i = ki;
+    pid->d = kd;
+}
+
 /**
   * @brief     PID 计算函数，使用位置式 PID 计算
   * @param[in] pid: PID 结构体
@@ -85,25 +96,15 @@ float pid_calc(pid_t *pid, float get, float set)
     return pid->out;
 }
 
-float pid_calc1(pid_t *pid,float get,float set)
+float pid_increment_calc(pid_increment_t *pid,float get,float set)
 {
-    pid->get=get;
-    pid->set=set;
-    pid->err[NOW]=fabs(set-get)*(set-get)/2;
-
-    pid->pout = pid->p * pid->err[NOW];
-    pid->iout += pid->i * pid->err[NOW];
-    pid->dout = pid->d * (pid->err[NOW] - pid->err[LAST]);
-
-    abs_limit(&(pid->iout), pid->integral_limit);
-    pid->out = pid->pout + pid->iout + pid->dout;
+    pid->err[NOW]=set-get;
+    pid->out+=pid->p*(pid->err[NOW]-pid->err[LAST])+pid->i*pid->err[NOW]+pid->d*(pid->err[NOW]-2*pid->err[LAST]+pid->err[INIT]);
+    pid->err[INIT]=pid->err[LAST];
+    pid->err[LAST]=pid->err[NOW];
     abs_limit(&(pid->out), pid->max_output);
-
-    pid->err[LAST]  = pid->err[NOW];
-
     return pid->out;
 }
-
 float pid_calc_my(pid_t *pid, float get, float set)
 {
     pid->get = get;
@@ -143,24 +144,42 @@ float pid_loop_calc(pid_t *pid,float get,float set,float max_value,float min_val
     }
 
 }
-
-float pid_loop1_calc(pid_t *pid,float get,float set,float max_value,float min_value)
-{
+//范围是-180~180,所以如果get大于180就立马变成-180
+float pid_loop_calc1(pid_t *pid,float get,float set,float max_value,float min_value){
     float gap,mid;
     mid=(max_value-min_value)/2;
     gap=set-get;
-    if(gap>=mid){
-        gap-=max_value-min_value;
-        return pid_calc1(pid,-gap,0);
+    if(gap>=mid)
+    {
+        gap=set-get-max_value+min_value;
+        return pid_calc_KI_Separation(pid,get+max_value-min_value,set,15);
+        //return pid_calc(pid,get+max_value-min_value,set);
     }
-    else if(gap<=-mid){
-        gap+=max_value-min_value;
-        return pid_calc1(pid,-gap,0);
+    else if(gap<=-mid)
+    {
+        gap=set-get+max_value+min_value;
+        //return pid_calc(pid,get-max_value+min_value,set);
+        return pid_calc_KI_Separation(pid,get-max_value+min_value,set,15);
     }
-    else{
-        return pid_calc1(pid,get,set);
+    else
+    {
+        //return pid_calc(pid,get,set);
+        return pid_calc_KI_Separation(pid,get,set,15);
     }
+//    if(gap>=mid){
+//        gap-=max_value-min_value;
+//        return pid_calc(pid,-gap,0);
+//    }
+//    else if(gap<=-mid){
+//        gap+=max_value-min_value;
+//        return pid_calc(pid,-gap,0);
+//    }
+//    else{
+//        return pid_calc(pid,get,set);
+//    }
+
 }
+
 
 
 /**
