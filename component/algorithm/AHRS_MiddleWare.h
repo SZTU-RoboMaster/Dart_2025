@@ -25,6 +25,16 @@
 #define RAD_TO_ANGLE 57.295779513082320876798154814105f
 #endif
 
+//定义 rad/s 转换到 rpm 的比例
+#ifndef RADS_TO_RPM
+#define RADS_TO_RPM 9.549296585513720146f
+#endif
+
+//定义 rpm 转换到 rad/s 的比例
+#ifndef RPM_TO_RADS
+#define RPM_TO_RADS 0.1047197551196597746154214461093f
+#endif
+
 extern void AHRS_get_height(fp32 *high);
 extern void AHRS_get_latitude(fp32 *latitude);
 extern fp32 AHRS_invSqrt(fp32 num);

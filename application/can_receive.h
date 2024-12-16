@@ -34,7 +34,7 @@ typedef enum
     CAN_MOTOR_0x1FF_ID = 0x1FF,
     //0x1FF对应的电机的ID
 
-    TURN_MOTOR_ID = 0x0A,
+    TURN_MOTOR_ID = 0x09,
 
     //电机控制 发送ID
     CAN_MOTOR_0x2FF_ID = 0x2FF,
@@ -48,7 +48,7 @@ typedef enum
     CAN_2006_THRUST_MOVE=0x208,
     CAN_6020_TURN=0x206,
 
-    CAN_DM4310_TURN =0x15
+    CAN_DM4310_TURN =0x19
 
 
 

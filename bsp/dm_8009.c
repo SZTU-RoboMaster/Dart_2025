@@ -3,8 +3,6 @@
 //
 #include "dm_8009.h"
 #include "can_receive.h"
-#include "FreeRTOS.h"
-#include "task.h"
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_can.h"
 #include "dart.h"
@@ -12,7 +10,8 @@
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
 
-static unsigned char is_init = 0;
+extern struct Dm4310 turn_motor;
+
 static uint8_t motors_len = 0;
 static struct Dm4310 *motors[4];
 static CAN_TxHeaderTypeDef
@@ -51,7 +50,7 @@ void dm8009_init(struct Dm4310 *motor, uint32_t device_id) {
 }
 
 void set_dm8009_enable(CAN_TYPE can_type, can_msg_id_e CMD_ID) {
-    tx_msg.StdId = CMD_ID;
+    tx_msg.StdId = CMD_ID+0x100;
     tx_msg.IDE = CAN_ID_STD;
     tx_msg.RTR = CAN_RTR_DATA;
     tx_msg.DLC = 0x08;
@@ -179,9 +178,12 @@ void dm8009_can_msg_unpack(uint32_t id, uint8_t data[]) {
             speed_int = (data[3] << 4) | (data[4] >> 4);
             torque_int = (data[4] & 0xF) << 8 | data[5];
 
-            motors[0]->pos_r = uint_to_float(pos_int, -12.5f, 12.5f, 16);
-            motors[0]->angular_vel = uint_to_float(speed_int, -45.0f, 45.0f, 12);
-            motors[0]->torque = uint_to_float(torque_int, -50.0f, 50.0f, 12);
+//            turn_motor.pos_r = uint_to_float(pos_int, -3.14f, 3.14f, 16)*RAD_TO_ANGLE;
+//            turn_motor.angular_vel = uint_to_float(speed_int, -45.0f, 45.0f, 12)*RADS_TO_RPM;
+//            turn_motor.torque = uint_to_float(torque_int, -12.0f, 12.0f, 12);
+            turn_motor.pos_r = uint_to_float(pos_int, -3.14f, 3.14f, 16);
+            turn_motor.angular_vel = uint_to_float(speed_int, -45.0f, 45.0f, 12);
+            turn_motor.torque = uint_to_float(torque_int, -12.0f, 12.0f, 12);
         }
             break;
 

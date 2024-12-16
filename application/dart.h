@@ -45,7 +45,7 @@
 #define TURN_SPEED_MAX_IOUT   500.0f
 
 //推动电机角度PID
-#define DRIVE_ANGLE_left_PID_KP     500.0f//500
+#define DRIVE_ANGLE_left_PID_KP     300.0f//500
 #define DRIVE_ANGLE_left_PID_KI     0.0f//0
 #define DRIVE_ANGLE_left_PID_KD     0.0f
 #define DRIVE_ANGLE_right_PID_KP     0.0f//500
@@ -64,7 +64,7 @@
 #define DRIVE_SPEED_MAX_IOUT   6000.0f
 
 //扳机移动电机角度PID
-#define TRIGGER_MOVE_ANGLE_PID_KP     10000.0f
+#define TRIGGER_MOVE_ANGLE_PID_KP     10000.0f//10000
 #define TRIGGER_MOVE_ANGLE_PID_KI     1.0f
 #define TRIGGER_MOVE_ANGLE_PID_KD     0.0f
 #define TRIGGER_MOVE_ANGLE_MAX_OUT    10000.0f
@@ -187,7 +187,10 @@ struct All_Flag
     bool is_ready2_turn_angle_ok_end;
     bool is_ready2_trigger_open_ok;
     bool is_ready2_turn_continue_ok;
-};
+    bool is_ready2_trigger_open_first;
+    bool is_back_Drive_first;
+
+    };
 
 enum trigger_angle
 {
