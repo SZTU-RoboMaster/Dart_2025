@@ -189,8 +189,8 @@ struct All_Flag
     bool is_ready2_turn_continue_ok;
     bool is_ready2_trigger_open_first;
     bool is_back_Drive_first;
-
-    };
+    bool is_ready2_trigger_ok;
+};
 
 enum trigger_angle
 {

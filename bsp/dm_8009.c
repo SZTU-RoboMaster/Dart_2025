@@ -76,7 +76,7 @@ void set_dm8009_enable(CAN_TYPE can_type, can_msg_id_e CMD_ID) {
 }
 
 void set_dm8009_disable(CAN_TYPE can_type, can_msg_id_e CMD_ID){
-    tx_msg.StdId = CMD_ID;
+    tx_msg.StdId = CMD_ID+0x100;
     tx_msg.IDE = CAN_ID_STD;
     tx_msg.RTR = CAN_RTR_DATA;
     tx_msg.DLC = 0x08;
