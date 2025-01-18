@@ -93,7 +93,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-extern uint8_t usart1_receive_buf[200];
+extern uint8_t usart1_receive_buf[14];
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/

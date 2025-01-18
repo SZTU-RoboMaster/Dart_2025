@@ -9,14 +9,14 @@
 #define DART_TASK_INIT_TIME 201
 
 //YAW轴角度环PID
-#define YAW_ANGLE_PID_KP     300.0f//100
-#define YAW_ANGLE_PID_KI     0.002f//0.1
-#define YAW_ANGLE_PID_KD     400.0f//900
+#define YAW_ANGLE_PID_KP     180.0f//100
+#define YAW_ANGLE_PID_KI     0.02f//0.01
+#define YAW_ANGLE_PID_KD     1500.0f//900
 #define YAW_ANGLE_MAX_OUT    3000.0f
 #define YAW_ANGLE_MAX_IOUT   3000.0f
 //YAW轴速度环PID
 #define YAW_SPEED_PID_KP     3.0f//5
-#define YAW_SPEED_PID_KI     0.0f//0.0f
+#define YAW_SPEED_PID_KI     0.02f//0.0f
 #define YAW_SPEED_PID_KD     0.0f//30
 #define YAW_SPEED_MAX_OUT    25000.0f
 #define YAW_SPEED_MAX_IOUT   6000.0f
@@ -190,6 +190,7 @@ struct All_Flag
     bool is_ready2_trigger_open_first;
     bool is_back_Drive_first;
     bool is_ready2_trigger_ok;
+    bool is_ready2_drive_find_ok;
 };
 
 enum trigger_angle

@@ -75,20 +75,21 @@ void Auto_task(void const* pvParameters)
         //Vision_info.frame_header.cmd=ReadFromUsart[4];
         HAL_UART_Receive(&huart1, usart1_receive_buf, sizeof(usart1_receive_buf), 10);
         if (usart1_receive_buf[0] == 0XA5) {
-//            if (verify_CRC8_check_sum(&usart1_receive_buf[1], 4)) {
+            //if (verify_CRC8_check_sum(&usart1_receive_buf[1], 4)) {
                 Vision_info.SOF = usart1_receive_buf[0];
                 Vision_info.data_length.data[0] = usart1_receive_buf[1];
                 Vision_info.data_length.data[1] = usart1_receive_buf[2];
                 Vision_info.seq = usart1_receive_buf[3];
                 Vision_info.CRC8 = usart1_receive_buf[4];
                 Vision_info.cmd_id = usart1_receive_buf[5] << 8 | usart1_receive_buf[6];
-//            }
+            //}
             Vision_info.yaw.data[0] = usart1_receive_buf[7];
             Vision_info.yaw.data[1] = usart1_receive_buf[8];
             Vision_info.yaw.data[2] = usart1_receive_buf[9];
             Vision_info.yaw.data[3] = usart1_receive_buf[10];
             Vision_info.target_lock = (int8_t) usart1_receive_buf[11];
-            memset(&usart1_receive_buf[0],0,14);
+            //memset(&usart1_receive_buf[0],0,14);
+            //vTaskDelay(10);
         }
     }
 }
