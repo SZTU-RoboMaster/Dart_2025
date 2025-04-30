@@ -3,7 +3,8 @@
 //
 
 #include "Decode.h"
-
+#include "dart.h"
+#include "math.h"
 fifo_s_t usb_fifo;                              // usb fifo 控制结构体
 uint8_t usb_fifo_buf[512];                      // usb fifo环形缓存区
 unpack_data_t decode_unpack;                    // 解包结构体
@@ -110,6 +111,13 @@ void decode_unpack_fifo_data(){
     }
 }
 
+fp32 yaw1=0;
+extern uint8_t dart_goal;
+union
+    {
+        uint8_t data[4];
+        float yaw;
+    }yaw2;
 uint16_t decode_data_solve(uint8_t *frame){
     uint8_t index = 0;
     uint16_t cmd_id = 0;
@@ -124,6 +132,27 @@ uint16_t decode_data_solve(uint8_t *frame){
         //接受控制码对应信息包
         case CHASSIS_CTRL_CMD_ID:{
             memcpy(&robot_ctrl, frame + index, sizeof(robot_ctrl_info_t));
+            if(num_launched==0&&dart_goal==GOAL_FRONT_STATION)
+            {
+                robot_ctrl.yaw+=40;
+            }
+            if(num_launched>=1&&dart_goal==GOAL_FRONT_STATION)
+            {
+                robot_ctrl.yaw+=60;
+            }
+            if(num_launched>=1&&dart_goal==GOAL_BASE_STATION)
+            {
+                robot_ctrl.yaw-=100;
+            }
+            if(num_launched==0&&dart_goal==GOAL_BASE_STATION)
+            {
+                robot_ctrl.yaw-=100;
+            }
+            if(fabs(robot_ctrl.yaw)<=5)
+            {
+                robot_ctrl.yaw=0;
+            }
+            //yaw1=robot_ctrl.yaw;
             // 离线检查部分没有
             break;
         }

@@ -9,15 +9,15 @@
 #define DART_TASK_INIT_TIME 201
 
 //YAW轴角度环PID
-#define YAW_ANGLE_PID_KP     180.0f//100
-#define YAW_ANGLE_PID_KI     0.02f//0.01
-#define YAW_ANGLE_PID_KD     1500.0f//900
-#define YAW_ANGLE_MAX_OUT    3000.0f
+#define YAW_ANGLE_PID_KP     100.0f//140
+#define YAW_ANGLE_PID_KI     0.005f//0.008
+#define YAW_ANGLE_PID_KD     150.0f//1800
+#define YAW_ANGLE_MAX_OUT    300.0f
 #define YAW_ANGLE_MAX_IOUT   3000.0f
 //YAW轴速度环PID
-#define YAW_SPEED_PID_KP     3.0f//5
-#define YAW_SPEED_PID_KI     0.02f//0.0f
-#define YAW_SPEED_PID_KD     0.0f//30
+#define YAW_SPEED_PID_KP     75.0f//3.0
+#define YAW_SPEED_PID_KI     4.5f//0.008
+#define YAW_SPEED_PID_KD     5.0f//2.7
 #define YAW_SPEED_MAX_OUT    25000.0f
 #define YAW_SPEED_MAX_IOUT   6000.0f
 
@@ -25,15 +25,6 @@
 #define TURN_ANGLE_PID_KP_3     5.5f//5.5
 #define TURN_ANGLE_PID_KI_3     0.04f//0.04
 #define TURN_ANGLE_PID_KD_3     400.0f//400
-#define TURN_ANGLE_PID_KP_2     10.0f//125
-#define TURN_ANGLE_PID_KI_2     0.1f//1
-#define TURN_ANGLE_PID_KD_2    400.0f//400
-#define TURN_ANGLE_PID_KP_1     8.0f//125
-#define TURN_ANGLE_PID_KI_1     0.05f//1
-#define TURN_ANGLE_PID_KD_1     400.0f//400
-#define TURN_ANGLE_PID_KP_0     15.0f//125
-#define TURN_ANGLE_PID_KI_0     0.05f//1
-#define TURN_ANGLE_PID_KD_0     400.0f//400
 #define TURN_ANGLE_MAX_OUT    360.0f
 #define TURN_ANGLE_MAX_IOUT   1000.0f
 //换弹电机速度PID
@@ -51,10 +42,10 @@
 #define DRIVE_ANGLE_right_PID_KP     0.0f//500
 #define DRIVE_ANGLE_right_PID_KI     0.0f//1
 #define DRIVE_ANGLE_right_PID_KD     0.0f
-#define DRIVE_ANGLE_MAX_OUT    3000.0f
+#define DRIVE_ANGLE_MAX_OUT    3500.0f
 #define DRIVE_ANGLE_MAX_IOUT   3000.0f
 //推动电机速度PID
-#define DRIVE_SPEED_left_PID_KP     10.0f//10
+#define DRIVE_SPEED_left_PID_KP      10.0f//10
 #define DRIVE_SPEED_left_PID_KI     0.0f
 #define DRIVE_SPEED_left_PID_KD     0.0f
 #define DRIVE_SPEED_right_PID_KP     0.0f//10
@@ -77,15 +68,15 @@
 #define TRIGGER_MOVE_SPEED_MAX_IOUT   1000.0f
 
 //推弹角度电机角度PID
-#define THRUST_ANGLE_ANGLE_PID_KP     100.0f//100
+#define THRUST_ANGLE_ANGLE_PID_KP     50.0f//80
 #define THRUST_ANGLE_ANGLE_PID_KI     0.0f
 #define THRUST_ANGLE_ANGLE_PID_KD     0.0f
 #define THRUST_ANGLE_ANGLE_MAX_OUT    3000.0f
 #define THRUST_ANGLE_ANGLE_MAX_IOUT   80.0f
 //推弹角度电机速度PID
-#define THRUST_ANGLE_SPEED_PID_KP     20.0f
-#define THRUST_ANGLE_SPEED_PID_KI     0.0f
-#define THRUST_ANGLE_SPEED_PID_KD     0.0f
+#define THRUST_ANGLE_SPEED_PID_KP     20.0f//35
+#define THRUST_ANGLE_SPEED_PID_KI     1.0f
+#define THRUST_ANGLE_SPEED_PID_KD     15.0f//25
 #define THRUST_ANGLE_SPEED_MAX_OUT    9000.0f
 #define THRUST_ANGLE_SPEED_MAX_IOUT   1000.0f
 
@@ -153,7 +144,6 @@ struct Thrust_t{
 
 struct All_Flag
 {
-
     bool is_back_drive_ok;
     //bool is_turn_angle
     bool is_turn_angle_ok;
@@ -168,6 +158,8 @@ struct All_Flag
     bool is_ready1_trigger_on_ok;
     bool is_ready1_drive_init_ok;
     bool is_ready1_trigger_off_ok;
+    bool is_ready1_drive_ok1;
+    bool is_ready1_drive_slow_ok;
     bool is_back_turn_ok;
     bool is_ready2_ok;
     bool is_ready2_drive_load_ok;
@@ -191,6 +183,28 @@ struct All_Flag
     bool is_back_Drive_first;
     bool is_ready2_trigger_ok;
     bool is_ready2_drive_find_ok;
+
+    bool is_ceshi_thrust_back_ok;
+    bool is_ceshi_drive_back_ok;
+    bool is_ceshi_drive_goal_ok;
+    bool is_ceshi_turn_end_ok;
+    bool is_ceshi_thrust_angle_back_ok;
+    bool is_ceshi_thrust_move_back_ok;
+    bool is_ceshi_thrust_move_goal_ok;
+    bool is_ceshi_turn_load_ok ;
+    bool is_ceshi_drive_load_ok ;
+    bool is_ceshi_turn_init_ok ;
+    bool is_ceshi_trigger_off_ok;
+    bool is_ceshi_turn_angle_ok_end;
+    bool is_ceshi_turn_angle_ok_init;
+    bool is_ceshi_turn_angle_ok_load;
+    bool is_ceshi_thrust_angle_goal_ok;
+    bool is_ceshi_trigger_open_ok;
+    bool is_ceshi_trigger_open_first;
+    bool is_ceshi_trigger_ok;
+    bool is_ceshi_drive_find_ok;
+    bool is_ceshi_ok;
+
 };
 
 enum trigger_angle
@@ -216,5 +230,6 @@ extern void dart_task(void const*pvParameters);
 extern struct Launch_t launcher_dart;
 extern struct Gimbal_t gimbal_dart;
 extern struct Thrust_t thrust_motor;
+extern uint8_t num_launched;
 
 #endif //DEMO1_DART_H

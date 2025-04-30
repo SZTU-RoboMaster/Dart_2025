@@ -30,6 +30,9 @@ Graphic_Operate three_layer_update_flag=UI_ADD;
 uint8_t usart6_buf[REFEREE_BUFFER_SIZE]={0};  //缓存从串口接受的数据
 uint8_t usart1_buf[REFEREE_BUFFER_SIZE]={0};
 
+bool launch_grant=false;
+uint16_t last_dart_launch_time;
+
 Referee_info_t Referee;
 
 
@@ -51,6 +54,7 @@ ui_robot_status_t ui_robot_status={
 static void referee_unpack_fifo_data(void);
 static bool_t Referee_read_data(uint8_t *ReadFromUsart);
 static void ui_static_draw();
+static void dart_launch();
 /*裁判系统主任务*/
 
 extern fp32 INS_angle[3];
@@ -60,6 +64,8 @@ void USART6_IRQHandler(void)
 {
     static volatile uint8_t res;
     if(USART6->SR & UART_FLAG_IDLE)
+
+
     {
         __HAL_UART_CLEAR_PEFLAG(&huart6);//读取UART6-SR 和UART6-DR; 清除中断标志位
 
@@ -261,9 +267,9 @@ bool_t Referee_read_data(uint8_t *ReadFromUsart)
                         memcpy(&Referee.Buff,ReadFromUsart+DATA,Referee_LEN_buff_musk);
                         break;
 
-                    case Referee_ID_aerial_robot_energy://0x0205    空中机器人能量状态数据 10HZ
-                        memcpy(&Referee.AerialRobotEnergy,ReadFromUsart+DATA,Referee_LEN_aerial_robot_energy);
-                        break;
+//                    case Referee_ID_aerial_robot_energy://0x0205    空中机器人能量状态数据 10HZ
+//                        memcpy(&Referee.AerialRobotEnergy,ReadFromUsart+DATA,Referee_LEN_aerial_robot_energy);
+//                        break;
 
                     case Referee_ID_robot_hurt://0x0206     伤害状态数据  伤害发生后发送
                         memcpy(&Referee.RobotHurt,ReadFromUsart+DATA,Referee_LEN_robot_hurt);
@@ -284,6 +290,7 @@ bool_t Referee_read_data(uint8_t *ReadFromUsart)
 
                     case Referee_ID_dart_client_directive://0x020A  飞镖机器人客户端指令书, 10Hz
                         memcpy(&Referee.DartClient,ReadFromUsart+DATA,Referee_LEN_dart_client_directive);
+                        dart_launch();
                         break;
 
                     case Referee_ID_dart_all_robot_position://0x020B
@@ -984,7 +991,8 @@ _Noreturn void UI_paint_task(void const*argument)
         {
             ui_aim_draw();//辅助瞄准线
 
-            ui_auto_aim_fire_init();//自瞄提示和摩擦轮开启提示初始化
+            ui_auto_aim_fire_init();//自瞄提示和摩擦
+            // 轮开启提示初始化
 
             ui_cover_draw_init();//旋转与弹舱提示初始化
 
@@ -1003,4 +1011,23 @@ _Noreturn void UI_paint_task(void const*argument)
             dynamic_cap_percentage_draw();//电容百分比修改
         }
     }
+}
+
+static void dart_launch()
+{
+    launch_grant|=(Referee.DartClient.dart_launch_opening_status==0&&Referee.GameState.game_progress==4);
+    launch_grant|=(Referee.DartRemainingTime.dart_remaining_time>0&&Referee.DartRemainingTime.dart_remaining_time<=15&&Referee.GameState.game_progress==4);
+    if(Referee.DartClient.latest_launch_cmd_time!=0&&Referee.DartClient.latest_launch_cmd_time!=last_dart_launch_time&&Referee.GameState.game_progress==4)
+    {
+        last_dart_launch_time= Referee.DartClient.latest_launch_cmd_time;
+        launch_grant=true;
+    }
+
+    if((Referee.GameState.stage_remain_time<10&&Referee.GameState.game_progress==4)||
+    (Referee.GameState.game_progress==1||Referee.GameState.game_progress==2||
+    Referee.GameState.game_progress==3||Referee.GameState.game_progress==5))
+    {
+        launch_grant=false;
+    }
+
 }

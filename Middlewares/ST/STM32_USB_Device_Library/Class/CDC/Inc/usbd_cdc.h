@@ -104,7 +104,7 @@ typedef struct
   uint8_t  datatype;
 } USBD_CDC_LineCodingTypeDef;
 
-typedef struct _USBD_CDC_Itf
+typedef struct USBD_CDC_Itf
 {
   int8_t (* Init)(void);
   int8_t (* DeInit)(void);

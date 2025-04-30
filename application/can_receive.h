@@ -71,7 +71,7 @@ typedef struct
     int32_t round_cnt;   //电机旋转的总圈数
     int32_t total_ecd;   //电机旋转的总编码器数值
 
-    uint16_t offset_ecd;//电机的校准编码值
+    uint32_t offset_ecd;//电机的校准编码值
 
 } motor_measure_t;
 

@@ -173,7 +173,7 @@ void set_dm8009_pos_speed(CAN_TYPE can_type, can_msg_id_e CMD_ID, float pos_rad,
 void dm8009_can_msg_unpack(uint32_t id, uint8_t data[]) {
     switch (id) {
         case CAN_DM4310_TURN: {
-            int pos_int, speed_int, torque_int;
+            int pos_int, speed_int, torque_int ;
             pos_int = (data[1] << 8) | data[2];
             speed_int = (data[3] << 4) | (data[4] >> 4);
             torque_int = (data[4] & 0xF) << 8 | data[5];
@@ -181,7 +181,7 @@ void dm8009_can_msg_unpack(uint32_t id, uint8_t data[]) {
 //            turn_motor.pos_r = uint_to_float(pos_int, -3.14f, 3.14f, 16)*RAD_TO_ANGLE;
 //            turn_motor.angular_vel = uint_to_float(speed_int, -45.0f, 45.0f, 12)*RADS_TO_RPM;
 //            turn_motor.torque = uint_to_float(torque_int, -12.0f, 12.0f, 12);
-            turn_motor.pos_r = uint_to_float(pos_int, -3.14f, 3.14f, 16);
+            turn_motor.pos_r = uint_to_float(pos_int, -PI, PI, 16);
             turn_motor.angular_vel = uint_to_float(speed_int, -45.0f, 45.0f, 12);
             turn_motor.torque = uint_to_float(torque_int, -12.0f, 12.0f, 12);
         }

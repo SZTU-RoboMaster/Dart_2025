@@ -26,6 +26,7 @@ struct Vision_info_get
         fp32 value;
     }yaw;
     int8_t target_lock;
+    fp32 last_yaw;
     union {
         uint8_t data[2];
         uint16_t len;

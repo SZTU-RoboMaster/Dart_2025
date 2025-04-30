@@ -87,7 +87,9 @@
 //#include "led_flow_task.h"
 //#include "oled_task.h"
 //#include "referee_usart_task.h"
-//#include "usb_task.h"
+#include "usb_task.h"
+#include "usbd_cdc_if.h"
+#include "usb_device.h"
 //#include "voltage_task.h"
 /* USER CODE END Includes */
 
@@ -124,7 +126,24 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void USB_Status_Init(void)
+{
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    __HAL_RCC_GPIOA_CLK_ENABLE();
 
+    HAL_GPIO_WritePin(GPIOA,GPIO_PIN_12,GPIO_PIN_RESET);
+
+    GPIO_InitStruct.Pin = GPIO_PIN_12;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    HAL_GPIO_WritePin(GPIOA,GPIO_PIN_12,GPIO_PIN_RESET);
+    HAL_Delay(100);
+    HAL_GPIO_WritePin(GPIOA,GPIO_PIN_12,GPIO_PIN_SET);
+    HAL_Delay (100);
+}
 /* USER CODE END 0 */
 
 /**
@@ -151,7 +170,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  //USB_Status_Init();
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -176,6 +195,7 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM3_Init();
   MX_TIM10_Init();
+  MX_USB_DEVICE_Init();
   MX_USART1_UART_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */

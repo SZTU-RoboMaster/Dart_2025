@@ -175,14 +175,14 @@ void MX_FREERTOS_Init(void) {
 //    osThreadDef(gimbalTask, gimbal_task, osPriorityHigh, 0, 512);
 //    gimbalTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
 
-    osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 1024);
-    imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
+//    osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 1024);
+//    imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
 
-    osThreadDef(dartTask, dart_task, osPriorityHigh, 0, 512);
+    osThreadDef(dartTask, dart_task, osPriorityRealtime, 0, 512);
     dartTaskHandle = osThreadCreate(osThread(dartTask), NULL);
 
-    osThreadDef(AutoTask, Auto_task, osPriorityHigh, 0, 512);
-    AutoTaskHandle = osThreadCreate(osThread(AutoTask), NULL);
+//    osThreadDef(AutoTask, Auto_task, osPriorityHigh, 0, 512);
+//    AutoTaskHandle = osThreadCreate(osThread(AutoTask), NULL);
 
 //    osThreadDef(laliTask, lali_task, osPriorityHigh, 0, 512);
 //    laliTaskHandle = osThreadCreate(osThread(laliTask), NULL);

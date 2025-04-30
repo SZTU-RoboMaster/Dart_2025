@@ -72,14 +72,8 @@ typedef struct
 //机器人控制数据
 typedef struct
 {
-    fp32 vx;
-    fp32 vy;
-    fp32 vw;
     fp32 yaw;
-    fp32 pitch;
     int8_t target_lock;
-    int8_t fire_command;
-    int8_t aim_id;
 }  robot_ctrl_info_t;
 
 typedef struct

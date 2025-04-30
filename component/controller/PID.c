@@ -59,6 +59,19 @@ void pid_init(pid_t *pid, uint32_t max_out, uint32_t intergral_limit, \
     pid->d = kd;
 }
 
+void pid_ChangingIntegrationRate_init(pid_ChangingIntegrationRate *pid, uint32_t max_out, uint32_t intergral_limit, \
+              float kp, float ki, float kd,float CoefA,float CoefB)
+{
+    pid->integral_limit = intergral_limit;
+    pid->max_output     = max_out;
+
+    pid->p = kp;
+    pid->i = ki;
+    pid->d = kd;
+    pid->CoefA=CoefA;
+    pid->CoefB=CoefB;
+}
+
 void pid_increment_init(pid_increment_t *pid, uint32_t max_out, uint32_t intergral_limit, \
               float kp, float ki, float kd)
 {
@@ -85,6 +98,42 @@ float pid_calc(pid_t *pid, float get, float set)
 
     pid->pout = pid->p * pid->err[NOW];
     pid->iout += pid->i * pid->err[NOW];
+    pid->dout = pid->d * (pid->err[NOW] - pid->err[LAST]);
+
+    abs_limit(&(pid->iout), pid->integral_limit);
+    pid->out = pid->pout + pid->iout + pid->dout;
+    abs_limit(&(pid->out), pid->max_output);
+
+    pid->err[LAST]  = pid->err[NOW];
+
+    return pid->out;
+}
+
+float pid_ChangingIntegrationRate_calc(pid_ChangingIntegrationRate *pid, float get, float set)
+{
+    pid->get = get;
+    pid->set = set;
+    pid->err[NOW] = set - get;
+
+    pid->pout = pid->p * pid->err[NOW];
+    if(pid->err[NOW]*pid->iout <=0)
+    {
+            pid->iout += pid->i * pid->err[NOW];
+    }else
+    if(pid->err[NOW]*pid->iout >0)
+    {
+        if(fabs(pid->err[NOW])<=pid->CoefB)
+        {
+            pid->iout += pid->i * pid->err[NOW];
+        }
+        else if(fabs(pid->err[NOW])<=(pid->CoefA+pid->CoefB))
+        {
+             pid->iout += pid->i*(pid->CoefA-fabs(pid->err[NOW])+pid->CoefB)/pid->CoefA;
+        }else
+        {
+            pid->iout=pid->iout;
+        }
+    }
     pid->dout = pid->d * (pid->err[NOW] - pid->err[LAST]);
 
     abs_limit(&(pid->iout), pid->integral_limit);
@@ -144,6 +193,25 @@ float pid_loop_calc(pid_t *pid,float get,float set,float max_value,float min_val
     }
 
 }
+
+float pid_loop_ChangingIntegrationRate_calc(pid_ChangingIntegrationRate *pid,float get,float set,float max_value,float min_value){
+    float gap,mid;
+    mid=(max_value-min_value)/2;
+    gap=set-get;
+    if(gap>=mid){
+        gap-=max_value-min_value;
+        return pid_ChangingIntegrationRate_calc(pid,-gap,0);
+    }
+    else if(gap<=-mid){
+        gap+=max_value-min_value;
+        return pid_ChangingIntegrationRate_calc(pid,-gap,0);
+    }
+    else{
+        return pid_ChangingIntegrationRate_calc(pid,get,set);
+    }
+
+}
+
 //范围是-180~180,所以如果get大于180就立马变成-180
 float pid_loop_calc1(pid_t *pid,float get,float set,float max_value,float min_value){
     float gap,mid;
