@@ -79,13 +79,13 @@ fp32 trigger_to_base_distance_set[4]={306.2032f,306.1997f,306.2023f,306.2049f};/
 fp32 turn_motor_angle_set[6];//换弹电机角度数组
 static fp32 set_dm_motor_angle = 0;
 int32_t turn_angle=0;//换弹电机角度数组索引
-fp32 yaw_angle_goal[2]={-2.948f,-30.997f};//0表示前哨站的角度,1表示基地的角度
+fp32 yaw_angle_goal[2]={-2.948f,-34.997f};//0表示前哨站的角度,1表示基地的角度
 bool trigger_move_down_l; //确定左拨杆放下面的标志位
 bool trigger_move_mid_l;  //确定左拨杆放中间的标志位
 uint8_t begin_count1=1;
 
 uint8_t flag1=false;//测试用
-int16_t init_speed_thrust_move=-1500;//测试用//-1000
+int16_t init_speed_thrust_move=-2500;//测试用//-1000
 int16_t init_speed_drive=1000;
 int16_t init_speed_trigger=-2500;
 int16_t init_speed_thrust_angle=-600;//600
@@ -199,7 +199,7 @@ void dart_task(void const*pvParameters)
 
             case DART_BACK:
             {
-                //dart_back_handle();
+                dart_back_handle();
                 break;
             }
 
@@ -322,11 +322,11 @@ static void dart_reset()
 
     back_yaw=-6.712f;
     back_thrust_angle_angle=init_angle_thrust_angle+7;
-    back_thrust_move_distance=init_thrust_move_distance+15;
+    back_thrust_move_distance=init_thrust_move_distance+10;
     back_drive_right_distance=init_drive_right_distance-10;
     back_drive_left_distance=init_drive_left_distance+5;
     back_trigger_distance=init_trigger_distance+40;
-    back_thrust_move_distance1=init_thrust_move_distance+20;
+    back_thrust_move_distance1=init_thrust_move_distance+10;
     ready1_back_drive_right_distance=init_drive_right_distance-7;
     ready1_back_drive_left_distance=init_drive_left_distance+5;//18
     ready2_back_drive_left_distance=init_drive_left_distance+5;
@@ -334,7 +334,7 @@ static void dart_reset()
 
     ready2_thrust_angle_goal_angle=55.566f+init_angle_thrust_angle;//61
 
-    ready2_thrust_move_goal_distance=112.5266f+init_thrust_move_distance;//112.5266
+    ready2_thrust_move_goal_distance=105.5266f+init_thrust_move_distance;//112.5266
     trigger_to_outposts_distance_set[0]=161.7974f+init_trigger_distance;//162.2974
     trigger_to_outposts_distance_set[1]=162.7044f+init_trigger_distance;//162.2044
     trigger_to_outposts_distance_set[2]=163.7044f+init_trigger_distance;//163.2044
@@ -358,9 +358,9 @@ static void dart_trigger_handle()
     {
         gimbal_dart.motor_yaw.angle_p.set=25;
     }
-    else if(gimbal_dart.motor_yaw.angle_p.set<=-25)
+    else if(gimbal_dart.motor_yaw.angle_p.set<=-40)
     {
-        gimbal_dart.motor_yaw.angle_p.set=-25;
+        gimbal_dart.motor_yaw.angle_p.set=-40;
     }
     gimbal_dart.motor_yaw.speed_p.set = pid_calc(&gimbal_dart.motor_yaw.angle_p,
                                                  gimbal_dart.motor_yaw.angle_p.get,
@@ -557,9 +557,9 @@ static void dart_ready1()
         {
             gimbal_dart.motor_yaw.angle_p.set=25;
         }
-        else if(gimbal_dart.motor_yaw.angle_p.set<=-35)
+        else if(gimbal_dart.motor_yaw.angle_p.set<=-40)
         {
-            gimbal_dart.motor_yaw.angle_p.set=-35;
+            gimbal_dart.motor_yaw.angle_p.set=-40;
         }
         gimbal_dart.motor_yaw.speed_p.set = pid_calc(&gimbal_dart.motor_yaw.angle_p,
                                                      gimbal_dart.motor_yaw.angle_p.get,
@@ -751,7 +751,7 @@ static void set_goal_drive_distance()
     if(dart_goal==GOAL_FRONT_STATION)
     {
         ready2_goal_set_drive_left_distance=(dart_length - slide_length - trigger_to_outposts_distance_set[num_launched]
-                                             - back_drive_left_distance+9);
+                                             - back_drive_left_distance+8.5);
         ready2_goal_set_drive_right_distance = -(dart_length - slide_length -
                                                  trigger_to_outposts_distance_set[num_launched] -
                                                  back_drive_right_distance);
@@ -760,7 +760,7 @@ static void set_goal_drive_distance()
                                                  trigger_to_base_distance_set[num_launched] -
                                                  back_drive_right_distance);
         ready2_goal_set_drive_left_distance = (dart_length - slide_length - trigger_to_base_distance_set[num_launched]-2
-                                               - back_drive_left_distance+9);
+                                               - back_drive_left_distance+8.5);
     }
 }
 
@@ -797,13 +797,13 @@ static void dart_ready2()
     if(ready_goal_flag==1)
     {
         gimbal_dart.motor_yaw.angle_p.set = gimbal_dart.motor_yaw.angle_p.get - filter_yaw_in.out/ 80;
-        if(gimbal_dart.motor_yaw.angle_p.set>=35.0)
+        if(gimbal_dart.motor_yaw.angle_p.set>=25.0)
         {
-            gimbal_dart.motor_yaw.angle_p.set=35;
+            gimbal_dart.motor_yaw.angle_p.set=25;
         }
-        else if(gimbal_dart.motor_yaw.angle_p.set<=-35)
+        else if(gimbal_dart.motor_yaw.angle_p.set<=-40)
         {
-            gimbal_dart.motor_yaw.angle_p.set=-35;
+            gimbal_dart.motor_yaw.angle_p.set=-40;
         }
         gimbal_dart.motor_yaw.speed_p.set = pid_calc(&gimbal_dart.motor_yaw.angle_p,
                                                      gimbal_dart.motor_yaw.angle_p.get,
@@ -1372,25 +1372,25 @@ static fp32 yaw_distance_conversion(int32_t ecd)
 //已完成
 static void dart_control_handle()
 {
-//    gimbal_dart.motor_yaw.angle_p.set = gimbal_dart.motor_yaw.angle_p.get - filter_yaw_in.out/ 80;
-//    if(gimbal_dart.motor_yaw.angle_p.set>=25.0)
-//    {
-//        gimbal_dart.motor_yaw.angle_p.set=25;
-//    }
-//    else if(gimbal_dart.motor_yaw.angle_p.set<=-40)
-//    {
-//        gimbal_dart.motor_yaw.angle_p.set=-40;
-//    }
-//    gimbal_dart.motor_yaw.speed_p.set = pid_calc(&gimbal_dart.motor_yaw.angle_p,
-//                                                 gimbal_dart.motor_yaw.angle_p.get,
-//                                                 gimbal_dart.motor_yaw.angle_p.set);
-//    gimbal_dart.motor_yaw.give_current = pid_calc(&gimbal_dart.motor_yaw.speed_p,
-//                                                  gimbal_dart.motor_yaw.motor_measure->speed_rpm,
-//                                                  gimbal_dart.motor_yaw.speed_p.set);
-//    if(fabs(filter_yaw_in.out)<=5)
-//    {
-//        gimbal_dart.motor_yaw.give_current=0;
-//    }
+    gimbal_dart.motor_yaw.angle_p.set = gimbal_dart.motor_yaw.angle_p.get - filter_yaw_in.out/ 80;
+    if(gimbal_dart.motor_yaw.angle_p.set>=25.0)
+    {
+        gimbal_dart.motor_yaw.angle_p.set=25;
+    }
+    else if(gimbal_dart.motor_yaw.angle_p.set<=-40)
+    {
+        gimbal_dart.motor_yaw.angle_p.set=-40;
+    }
+    gimbal_dart.motor_yaw.speed_p.set = pid_calc(&gimbal_dart.motor_yaw.angle_p,
+                                                 gimbal_dart.motor_yaw.angle_p.get,
+                                                 gimbal_dart.motor_yaw.angle_p.set);
+    gimbal_dart.motor_yaw.give_current = pid_calc(&gimbal_dart.motor_yaw.speed_p,
+                                                  gimbal_dart.motor_yaw.motor_measure->speed_rpm,
+                                                  gimbal_dart.motor_yaw.speed_p.set);
+    if(fabs(filter_yaw_in.out)<=5)
+    {
+        gimbal_dart.motor_yaw.give_current=0;
+    }
 
     if(rc_ctrl.rc.ch[4]<-500)
     {
@@ -1583,16 +1583,6 @@ static void dart_back_handle()
     thrust_motor.trigger_motor.give_current = pid_calc(&thrust_motor.trigger_motor.speed_p,
                                                        thrust_motor.trigger_motor.motor_measure->speed_rpm,
                                                        thrust_motor.trigger_motor.speed_p.set);
-
-
-    launcher_dart.push_motor_l.speed_p.set = pid_calc(&launcher_dart.push_motor_l.angle_p,
-                                                      get_drive_left_distance,
-                                                      back_drive_left_distance);
-    launcher_dart.push_motor_l.give_current = pid_calc(&launcher_dart.push_motor_l.speed_p,
-                                                       launcher_dart.push_motor_l.motor_measure->speed_rpm,
-                                                       launcher_dart.push_motor_l.speed_p.set);
-    launcher_dart.push_motor_r.give_current = -launcher_dart.push_motor_l.give_current;
-
 
     if(flags.is_back_ok==false) {
         if (flags.is_back_turn_ok == false) {
@@ -1788,100 +1778,100 @@ static void dart_init()
 //已完成
 static void dart_mode_set()
 {
-//    if(switch_is_down(rc_ctrl.rc.s[RC_s_L]) && switch_is_down(rc_ctrl.rc.s[RC_s_R]))
-//    {
-//        gimbal_dart.last_mode=gimbal_dart.mode;
-//        gimbal_dart.mode=DART_RELAX;
-//    }
-//    if(gimbal_dart.mode==DART_RELAX || gimbal_dart.mode==DART_CONTROL) {
-//        if (switch_is_mid(rc_ctrl.rc.s[RC_s_L]) && switch_is_mid(rc_ctrl.rc.s[RC_s_R])) {
-//            gimbal_dart.last_mode = gimbal_dart.mode;
-//            gimbal_dart.mode = DART_BACK;
-//        }
-//    }
-//    if(gimbal_dart.mode==DART_BACK&&flags.is_back_ok == true&&dart_goal!=0)
-//    {
-//        flags.is_back_ok=false;
-//        gimbal_dart.mode=DART_READY;
-//        flags.is_back_ok=false;
-//    }
-//    if(gimbal_dart.mode==DART_READY&&(flags.is_ready_ok==true||flags.is_ready2_ok==true))
-//    {
-//        gimbal_dart.mode=DART_TRIGGER;
-//        flags.is_ready_ok=false;
-//        flags.is_ready2_ok=false;
-//    }
-
-
-    if(gimbal_dart.mode==DART_RELAX || gimbal_dart.mode==DART_CONTROL)
-    {
-        if(switch_is_mid(rc_ctrl.rc.s[RC_s_L]) && switch_is_mid(rc_ctrl.rc.s[RC_s_R]))
-        {
-            gimbal_dart.last_mode=gimbal_dart.mode;
-            gimbal_dart.mode=DART_BACK;
-        }
-    }
-    if(switch_is_up(rc_ctrl.rc.s[RC_s_L]) && switch_is_up(rc_ctrl.rc.s[RC_s_R]) && (gimbal_dart.mode==DART_BACK) && rc_ctrl.rc.ch[4]==0)
+    if(switch_is_down(rc_ctrl.rc.s[RC_s_L]) && switch_is_down(rc_ctrl.rc.s[RC_s_R]))
     {
         gimbal_dart.last_mode=gimbal_dart.mode;
-        gimbal_dart.mode=DART_CONTROL;
+        gimbal_dart.mode=DART_RELAX;
     }
-    if(gimbal_dart.mode==DART_BACK && rc_ctrl.rc.ch[4]<-500)
+    if(gimbal_dart.mode==DART_RELAX || gimbal_dart.mode==DART_CONTROL) {
+        if (switch_is_mid(rc_ctrl.rc.s[RC_s_L]) && switch_is_mid(rc_ctrl.rc.s[RC_s_R])) {
+            gimbal_dart.last_mode = gimbal_dart.mode;
+            gimbal_dart.mode = DART_BACK;
+        }
+    }
+    if(gimbal_dart.mode==DART_BACK&&flags.is_back_ok == true&&dart_goal!=0)
     {
+        flags.is_back_ok=false;
+        gimbal_dart.mode=DART_READY;
+        flags.is_back_ok=false;
+    }
+    if(gimbal_dart.mode==DART_READY&&(flags.is_ready_ok==true||flags.is_ready2_ok==true))
+    {
+        gimbal_dart.mode=DART_TRIGGER;
+        flags.is_ready_ok=false;
+        flags.is_ready2_ok=false;
+    }
 
-        if(switch_is_up(rc_ctrl.rc.s[RC_s_L]))
-        {
-            launcherable_num=2;
-        }
-        if(switch_is_down(rc_ctrl.rc.s[RC_s_L]))
-        {
-            launcherable_num=1;
-        }
-        if(switch_is_up(rc_ctrl.rc.s[RC_s_R]))
-        {
-            dart_goal=GOAL_FRONT_STATION;
-        }
-        if(switch_is_down(rc_ctrl.rc.s[RC_s_R]))
-        {
-            dart_goal=GOAL_BASE_STATION;
-        }
-        if(launcherable_num>0 && dart_goal>0)
-        {
-            gimbal_dart.last_mode=gimbal_dart.mode;
-            gimbal_dart.mode=DART_GOAL_SET;
-            //flags.is_back_ok=false;
-        }
-    }
-    if(gimbal_dart.mode==DART_GOAL_SET)
-    {
-        if(rc_ctrl.rc.ch[2]>400&&rc_ctrl.rc.ch[3]>400&&rc_ctrl.rc.ch[0]<-400&&rc_ctrl.rc.ch[1]>400)
-        {
-            gimbal_dart.last_mode=gimbal_dart.mode;
-            gimbal_dart.mode=DART_READY;
-        }
-    }
-    if(gimbal_dart.mode==DART_READY)
-    {
-        //num_launched==0记得加回来
-        if(switch_is_up(rc_ctrl.rc.s[RC_s_L])&&flags.is_ready_ok==1&&num_launched==0)
-        {
-            gimbal_dart.last_mode=gimbal_dart.mode;
-            gimbal_dart.mode=DART_TRIGGER;
-            flags.is_ready_ok=0;
-        }
-        if(num_launched>0&&!switch_is_up(rc_ctrl.rc.s[RC_s_L])&&flags.is_ready2_ok==1)
-        {
-            gimbal_dart.last_mode=gimbal_dart.mode;
-            gimbal_dart.mode=DART_TRIGGER;
-            flags.is_ready2_ok=0;
-        }
-        else if(num_launched>0&&switch_is_up(rc_ctrl.rc.s[RC_s_L])&&flags.is_ready_ok==1)
-        {
-            gimbal_dart.last_mode=gimbal_dart.mode;
-            gimbal_dart.mode=DART_TRIGGER;
-            flags.is_ready_ok=0;
-        }
-    }
+
+//    if(gimbal_dart.mode==DART_RELAX || gimbal_dart.mode==DART_CONTROL)
+//    {
+//        if(switch_is_mid(rc_ctrl.rc.s[RC_s_L]) && switch_is_mid(rc_ctrl.rc.s[RC_s_R]))
+//        {
+//            gimbal_dart.last_mode=gimbal_dart.mode;
+//            gimbal_dart.mode=DART_BACK;
+//        }
+//    }
+//    if(switch_is_up(rc_ctrl.rc.s[RC_s_L]) && switch_is_up(rc_ctrl.rc.s[RC_s_R]) && (gimbal_dart.mode==DART_BACK) && rc_ctrl.rc.ch[4]==0)
+//    {
+//        gimbal_dart.last_mode=gimbal_dart.mode;
+//        gimbal_dart.mode=DART_CONTROL;
+//    }
+//    if(gimbal_dart.mode==DART_BACK && rc_ctrl.rc.ch[4]<-500)
+//    {
+//
+//        if(switch_is_up(rc_ctrl.rc.s[RC_s_L]))
+//        {
+//            launcherable_num=2;
+//        }
+//        if(switch_is_down(rc_ctrl.rc.s[RC_s_L]))
+//        {
+//            launcherable_num=1;
+//        }
+//        if(switch_is_up(rc_ctrl.rc.s[RC_s_R]))
+//        {
+//            dart_goal=GOAL_FRONT_STATION;
+//        }
+//        if(switch_is_down(rc_ctrl.rc.s[RC_s_R]))
+//        {
+//            dart_goal=GOAL_BASE_STATION;
+//        }
+//        if(launcherable_num>0 && dart_goal>0)
+//        {
+//            gimbal_dart.last_mode=gimbal_dart.mode;
+//            gimbal_dart.mode=DART_GOAL_SET;
+//            //flags.is_back_ok=false;
+//        }
+//    }
+//    if(gimbal_dart.mode==DART_GOAL_SET)
+//    {
+//        if(rc_ctrl.rc.ch[2]>400&&rc_ctrl.rc.ch[3]>400&&rc_ctrl.rc.ch[0]<-400&&rc_ctrl.rc.ch[1]>400)
+//        {
+//            gimbal_dart.last_mode=gimbal_dart.mode;
+//            gimbal_dart.mode=DART_READY;
+//        }
+//    }
+//    if(gimbal_dart.mode==DART_READY)
+//    {
+//        //num_launched==0记得加回来
+//        if(switch_is_up(rc_ctrl.rc.s[RC_s_L])&&flags.is_ready_ok==1&&num_launched==0)
+//        {
+//            gimbal_dart.last_mode=gimbal_dart.mode;
+//            gimbal_dart.mode=DART_TRIGGER;
+//            flags.is_ready_ok=0;
+//        }
+//        if(num_launched>0&&!switch_is_up(rc_ctrl.rc.s[RC_s_L])&&flags.is_ready2_ok==1)
+//        {
+//            gimbal_dart.last_mode=gimbal_dart.mode;
+//            gimbal_dart.mode=DART_TRIGGER;
+//            flags.is_ready2_ok=0;
+//        }
+//        else if(num_launched>0&&switch_is_up(rc_ctrl.rc.s[RC_s_L])&&flags.is_ready_ok==1)
+//        {
+//            gimbal_dart.last_mode=gimbal_dart.mode;
+//            gimbal_dart.mode=DART_TRIGGER;
+//            flags.is_ready_ok=0;
+//        }
+//    }
     if(gimbal_dart.mode==DART_TRIGGER)
     {
         if(rc_ctrl.rc.ch[4]<-500)
@@ -1894,16 +1884,16 @@ static void dart_mode_set()
 
 static void dart_data_update()
 {
-//    if(switch_is_up(rc_ctrl.rc.s[RC_s_R])&&(gimbal_dart.mode!=DART_TRIGGER&&gimbal_dart.mode!=DART_READY&&gimbal_dart.mode!=DART_RELAX))
-//    {
-//        gimbal_dart.motor_yaw.angle_p.set=yaw_angle_goal[front];
-//        dart_goal=GOAL_FRONT_STATION;
-//    }
-//    if(switch_is_up(rc_ctrl.rc.s[RC_s_L])&&(gimbal_dart.mode!=DART_TRIGGER&&gimbal_dart.mode!=DART_READY&&gimbal_dart.mode!=DART_RELAX))
-//    {
-//        gimbal_dart.motor_yaw.angle_p.set=yaw_angle_goal[base];
-//        dart_goal=GOAL_BASE_STATION;
-//    }
+    if(switch_is_up(rc_ctrl.rc.s[RC_s_R])&&(gimbal_dart.mode!=DART_TRIGGER&&gimbal_dart.mode!=DART_READY&&gimbal_dart.mode!=DART_RELAX))
+    {
+        gimbal_dart.motor_yaw.angle_p.set=yaw_angle_goal[front];
+        dart_goal=GOAL_FRONT_STATION;
+    }
+    if(switch_is_up(rc_ctrl.rc.s[RC_s_L])&&(gimbal_dart.mode!=DART_TRIGGER&&gimbal_dart.mode!=DART_READY&&gimbal_dart.mode!=DART_RELAX))
+    {
+        gimbal_dart.motor_yaw.angle_p.set=yaw_angle_goal[base];
+        dart_goal=GOAL_BASE_STATION;
+    }
     gimbal_dart.motor_yaw.angle_p.get=yaw_distance_conversion(gimbal_dart.motor_yaw.motor_measure->total_ecd);
     first_order_filter_cali(&filter_yaw_in,robot_ctrl.yaw);
 
