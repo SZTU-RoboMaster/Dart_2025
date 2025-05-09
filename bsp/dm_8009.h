@@ -32,5 +32,6 @@ void set_dm8009_disable(CAN_TYPE can_type, can_msg_id_e CMD_ID);
 void set_dm8009_pos_speed(CAN_TYPE can_type, can_msg_id_e CMD_ID, float pos_rad, float speed_rps);
 
 void dm8009_can_msg_unpack(uint32_t id, uint8_t data[]);
+static float uint_to_float(int x_int, float x_min, float x_max, int bits);
 
 #endif //DM_6006_H

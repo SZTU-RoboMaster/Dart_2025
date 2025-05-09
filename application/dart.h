@@ -15,7 +15,7 @@
 #define YAW_ANGLE_MAX_OUT    300.0f
 #define YAW_ANGLE_MAX_IOUT   3000.0f
 //YAW÷·ÀŸ∂»ª∑PID
-#define YAW_SPEED_PID_KP     75.0f//3.0
+#define YAW_SPEED_PID_KP     80.0f//3.0
 #define YAW_SPEED_PID_KI     4.5f//0.008
 #define YAW_SPEED_PID_KD     5.0f//2.7
 #define YAW_SPEED_MAX_OUT    25000.0f
@@ -103,8 +103,8 @@ enum Dart_Mode{
     DART_CONTROL,
     DART_GOAL_SET,
     DART_READY,
-    DART_TRIGGER,
-    DART_LAUNCH
+    DART_TRIGGER,//5
+    DART_LAUNCH//6
 };
 
 enum Fire_Mode{

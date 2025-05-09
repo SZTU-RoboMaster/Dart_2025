@@ -130,27 +130,35 @@ uint16_t decode_data_solve(uint8_t *frame){
 
     switch (cmd_id){
         //接受控制码对应信息包
-        case CHASSIS_CTRL_CMD_ID:{
+        case CHASSIS_CTRL_CMD_ID: {
             memcpy(&robot_ctrl, frame + index, sizeof(robot_ctrl_info_t));
-            if(num_launched==0&&dart_goal==GOAL_FRONT_STATION)
-            {
-                robot_ctrl.yaw+=40;
-            }
-            if(num_launched>=1&&dart_goal==GOAL_FRONT_STATION)
-            {
-                robot_ctrl.yaw+=60;
-            }
-            if(num_launched>=1&&dart_goal==GOAL_BASE_STATION)
-            {
-                robot_ctrl.yaw-=100;
-            }
-            if(num_launched==0&&dart_goal==GOAL_BASE_STATION)
-            {
-                robot_ctrl.yaw-=100;
-            }
-            if(fabs(robot_ctrl.yaw)<=5)
-            {
-                robot_ctrl.yaw=0;
+//            if(num_launched==0&&dart_goal==GOAL_FRONT_STATION)
+//            {
+//                robot_ctrl.yaw+=40;
+//            }
+//            if(num_launched>=1&&dart_goal==GOAL_FRONT_STATION)
+//            {
+//                robot_ctrl.yaw+=60;
+//            }
+//            if(num_launched>=1&&dart_goal==GOAL_BASE_STATION)
+//            {
+//                robot_ctrl.yaw-=100;
+//            }
+//            if(num_launched==0&&dart_goal==GOAL_BASE_STATION)
+//            {
+//                robot_ctrl.yaw-=100;
+//            }
+            if(robot_ctrl.target_lock!=0) {
+                if (dart_goal == GOAL_FRONT_STATION && num_launched >=0) {
+
+                    robot_ctrl.yaw -= 150;
+                }
+                if (dart_goal == GOAL_BASE_STATION) {
+                    robot_ctrl.yaw -= 170;
+                }
+                if (fabs(robot_ctrl.yaw) <= 5) {
+                    robot_ctrl.yaw = 0;
+                }
             }
             //yaw1=robot_ctrl.yaw;
             // 离线检查部分没有

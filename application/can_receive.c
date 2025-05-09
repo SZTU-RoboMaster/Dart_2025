@@ -54,7 +54,7 @@ extern void dm8009_can_msg_unpack(uint32_t id, uint8_t data[]);
 motor_measure_t motor_left_measure;
 motor_measure_t motor_right_measure;
 #endif
-
+uint8_t flag22=0;
 static CAN_TxHeaderTypeDef  tx_message;
 static uint8_t              can_send_data[8];
 extern chassis_t chassis;
@@ -83,7 +83,6 @@ void CAN_cmd_motor(CAN_TYPE can_type,can_msg_id_e CMD_ID,int16_t motor1, int16_t
     {
         HAL_CAN_AddTxMessage(&hcan2, &tx_message, can_send_data, &send_mail_box);
     }
-
 }
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
@@ -104,15 +103,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
             case CAN_3508_DRIVE_LEFT: get_motor_measure(&motor_3508[1], rx_data);
                 get_motor_round_cnt(motor_3508[1]);
                 break;
-
-            default: {
-                break;
-            }
-        }
-    }
-    if (hcan == &hcan1) {
-        dm8009_can_msg_unpack(rx_header.StdId,rx_data);
-        switch (rx_header.StdId){
             case CAN_6020_YAW: get_motor_measure(&motor_6020[0], rx_data);
                 get_motor_round_cnt(motor_6020[0]);
                 break;
@@ -123,9 +113,14 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
             case CAN_2006_THRUST_MOVE: get_motor_measure(&motor_2006[1], rx_data);
                 get_motor_round_cnt(motor_2006[1]);
                 break;
-            case CAN_6020_TURN:get_motor_measure(&motor_6020[1],rx_data);
-                get_motor_round_cnt(motor_6020[1]);
+            default: {
                 break;
+            }
+        }
+    }
+    if (hcan == &hcan1) {
+        dm8009_can_msg_unpack(rx_header.StdId,rx_data);
+        switch (rx_header.StdId){
 
             default: {
                 break;

@@ -64,8 +64,6 @@ void USART6_IRQHandler(void)
 {
     static volatile uint8_t res;
     if(USART6->SR & UART_FLAG_IDLE)
-
-
     {
         __HAL_UART_CLEAR_PEFLAG(&huart6);//读取UART6-SR 和UART6-DR; 清除中断标志位
 
@@ -237,9 +235,9 @@ bool_t Referee_read_data(uint8_t *ReadFromUsart)
                         memcpy(&Referee.EventData,ReadFromUsart+DATA,Referee_LEN_event_data);
                         break;
 
-                    case Referee_ID_supply_projectile_action://0x0102 场地补给站动作标识数据   动作改变之后发送
-                        memcpy(&Referee.SupplyProjectileAction,ReadFromUsart+DATA,Referee_LEN_supply_projectile_action);
-                        break;
+//                    case Referee_ID_supply_projectile_action://0x0102 场地补给站动作标识数据   动作改变之后发送
+//                        memcpy(&Referee.SupplyProjectileAction,ReadFromUsart+DATA,Referee_LEN_supply_projectile_action);
+//                        break;
 
                     case Referee_ID_supply_warm://0x0104    裁判系统警告数据    己方警告之后发送
                         memcpy(&Referee.RefereeWarning,ReadFromUsart+DATA,Referee_LEN_supply_warm);
@@ -1012,20 +1010,20 @@ _Noreturn void UI_paint_task(void const*argument)
         }
     }
 }
-
+uint8_t progress=4;
 static void dart_launch()
 {
-    launch_grant|=(Referee.DartClient.dart_launch_opening_status==0&&Referee.GameState.game_progress==4);
-    launch_grant|=(Referee.DartRemainingTime.dart_remaining_time>0&&Referee.DartRemainingTime.dart_remaining_time<=15&&Referee.GameState.game_progress==4);
-    if(Referee.DartClient.latest_launch_cmd_time!=0&&Referee.DartClient.latest_launch_cmd_time!=last_dart_launch_time&&Referee.GameState.game_progress==4)
+    launch_grant|=(Referee.DartClient.dart_launch_opening_status==0&&progress==4);
+    launch_grant|=(Referee.DartRemainingTime.dart_remaining_time>0&&Referee.DartRemainingTime.dart_remaining_time<=20&&progress==4);
+    if(Referee.DartClient.latest_launch_cmd_time!=0&&Referee.DartClient.latest_launch_cmd_time!=last_dart_launch_time&&progress==4)
     {
         last_dart_launch_time= Referee.DartClient.latest_launch_cmd_time;
         launch_grant=true;
     }
 
-    if((Referee.GameState.stage_remain_time<10&&Referee.GameState.game_progress==4)||
-    (Referee.GameState.game_progress==1||Referee.GameState.game_progress==2||
-    Referee.GameState.game_progress==3||Referee.GameState.game_progress==5))
+    if((Referee.GameState.stage_remain_time<10&&progress==4)||
+    (progress==1||progress==2||
+    progress==3||progress==5))
     {
         launch_grant=false;
     }
