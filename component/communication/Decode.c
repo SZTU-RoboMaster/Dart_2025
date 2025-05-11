@@ -151,7 +151,7 @@ uint16_t decode_data_solve(uint8_t *frame){
             if(robot_ctrl.target_lock!=0) {
                 if (dart_goal == GOAL_FRONT_STATION && num_launched >=0) {
 
-                    robot_ctrl.yaw -= 150;
+                    robot_ctrl.yaw -= 200;//-150
                 }
                 if (dart_goal == GOAL_BASE_STATION) {
                     robot_ctrl.yaw -= 170;

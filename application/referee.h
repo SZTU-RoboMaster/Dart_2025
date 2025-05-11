@@ -96,6 +96,7 @@ typedef enum
 
 
 //修改后
+//修改后
 typedef enum
 {
     Referee_ID_game_state                   = 0x0001,//比赛状态数据
@@ -106,7 +107,7 @@ typedef enum
 //    Referee_ID_game_buff                    = 0x0005,//buff        删除
 
     Referee_ID_event_data  					= 0x0101,//场地事件数据
-    Referee_ID_supply_projectile_action   	= 0x0102,//场地补给站动作标识数据
+//    Referee_ID_supply_projectile_action   	= 0x0102,//场地补给站动作标识数据
     Referee_ID_supply_warm 	                = 0x0104,//裁判系统警告数据
 //    Referee_ID_dart_shoot_time              = 0x0105, //飞镖发射口倒计时->飞镖发射相关数据
     Referee_ID_dart_info                    = 0x0105, //飞镖发射口倒计时->飞镖发射相关数据
@@ -115,7 +116,7 @@ typedef enum
     Referee_ID_power_heat_data    			= 0x0202,//实时功率热量数据
     Referee_ID_game_robot_pos        		= 0x0203,//本机器人位置数据
     Referee_ID_buff_musk					= 0x0204,//机器人增益数据
-    Referee_ID_aerial_robot_energy			= 0x0205,//空中机器人能量状态数据
+//    Referee_ID_aerial_robot_energy			= 0x0205,//空中机器人能量状态数据
     Referee_ID_robot_hurt					= 0x0206,//伤害状态数据
     Referee_ID_shoot_data					= 0x0207,//实时射击数据
     Referee_ID_bullet_remaining             = 0x0208,//剩余发射数
@@ -157,7 +158,7 @@ typedef enum
 //    Referee_LED_game_buff                       =11 , //0X0005
 
     Referee_LEN_event_data  					=  4,	//0x0101  场地事件数据
-    Referee_LEN_supply_projectile_action        =  4,	//0x0102场地补给站动作标识数据
+//    Referee_LEN_supply_projectile_action        =  4,	//0x0102场地补给站动作标识数据
     Referee_LEN_supply_warm                     = 3,    //0x0104 裁判系统警告
 //    Referee_LEN_missile_shoot_time              = 3,    //0x0105 飞镖发射口倒计时
     Referee_LEN_dart_info                       = 3,    //0x0105 飞镖发射口倒计时
@@ -165,29 +166,28 @@ typedef enum
     Referee_LEN_game_robot_state    			= 13,	//0x0201 机器人状态数据
     Referee_LEN_power_heat_data   				= 16,	//0x0202 实时功率热量数据
     Referee_LEN_game_robot_pos        			= 16,	//0x0203 机器人位置数据
-    Referee_LEN_buff_musk        				=  6,	//0x0204 机器人增益数据
-    Referee_LEN_aerial_robot_energy        		=  2,	//0x0205 空中机器人能量状态数据
+    Referee_LEN_buff_musk        				=  7,	//0x0204 机器人增益数据
+//    Referee_LEN_aerial_robot_energy        		=  2,	//0x0205 空中机器人能量状态数据
     Referee_LEN_robot_hurt        				=  1,	//0x0206 伤害状态数据
     Referee_LEN_shoot_data       				=  7,	//0x0207 实时射击数据
     Referee_LEN_bullet_remaining                = 6,    //0x0208剩余发射数
     Referee_LEN_rfid_status					    = 4,    //0x0209
     Referee_LEN_dart_client_directive           = 6,    //0x020A
     Referee_LEN_dart_all_robot_position         = 40,   //0x020B
-    Referee_LEN_radar_mark                      = 6,    //0x020C
-    Referee_LEN_entry_info                      =4,     //0x020D
+    Referee_LEN_radar_mark                      = 1,    //0x020C
+    Referee_LEN_entry_info                      =6,     //0x020D
     Referee_LEN_radar_info                      =1,     //0x020E
 
-    Referee_LEN_robot_interactive_header_data   =128,   //0x0301
+    Referee_LEN_robot_interactive_header_data   =127,   //0x0301
     Referee_LEN_controller_interactive_header_data=30,  //0x0302
     Referee_LEN_map_command                     =15,    //0x0303
     Referee_LEN_keyboard_information            =12,    //0x0304
-    Referee_LEN_robot_map_robot_data            =10,    //0x0305
+    Referee_LEN_robot_map_robot_data            =24,    //0x0305
     Referee_LEN_robot_custom_client             =8,     //0x0306
     Referee_LEN_robot_entry_info_receive        =103,   //0x0307
     Referee_LEN_robot_custom_info_receive       =34,    //0x0308
 
 }RefereeDataLength;
-
 
 typedef enum{
     Referee_hero_red       = 1,
@@ -204,6 +204,7 @@ typedef enum{
     Referee_infantry5_blue = 105,
     Referee_plane_blue     = 106,
 }Referee_robot_ID;
+
 
 
 typedef struct {
@@ -402,6 +403,7 @@ typedef struct
     uint8_t defence_buff;           //增防,下面三个都是百分比
     uint8_t vulnerability_buff;     //减防
     uint16_t attack_buff;           //攻击
+    uint8_t remaining_energy;       //剩余能量，在机器人剩余能量小于50%时反馈
 }__packed  ext_buff_t;
 
 /* ID: 0x0205  Byte:  1->2    空中机器人能量状态数据 */
@@ -492,19 +494,15 @@ typedef  struct
 /* ID:   0x020C  Byte:6  机器人被雷达标记进度 0-120	 */
 typedef  struct
 {
-    uint8_t mark_hero_progress;
-    uint8_t mark_engineer_progress;
-    uint8_t mark_standard_3_progress;
-    uint8_t mark_standard_4_progress;
-    uint8_t mark_standard_5_progress;
-    uint8_t mark_sentry_progress;
+    uint8_t mark_progress;
 }__packed ext_radar_mark_data_t;
 
 //V1.6.1新增 24赛季哨兵修改
-/* ID:   0x020D  Byte:4  哨兵兑换发单量和血量信 */
+/* ID:   0x020D  Byte:6  哨兵兑换发单量和血量信 */
 typedef  struct
 {
     uint32_t sentry_info;
+    uint16_t sentry_info_2;
 } __packed ext_sentry_info_t;
 
 //V1.6.1新增 24赛季雷达修改
@@ -595,9 +593,18 @@ typedef struct
 /* 选手端小地图接收雷达数据：0x0305  */
 typedef struct
 {
-    uint16_t target_robot_id;
-    float target_position_x;
-    float target_position_y;
+    int16_t hero_position_x;
+    uint16_t hero_position_y;
+    uint16_t engineer_position_x;
+    uint16_t engineer_position_y;
+    uint16_t infantry_3_position_x;
+    uint16_t infantry_3_position_y;
+    uint16_t infantry_4_position_x;
+    uint16_t infantry_4_position_y;
+    uint16_t infantry_5_position_x;
+    uint16_t infantry_5_position_y;
+    uint16_t sentry_position_x;
+    uint16_t sentry_position_y;
 } ext_map_robot_data_t;
 
 /* 自定义控制器与选手端交互数据：0x0306  */
@@ -671,7 +678,7 @@ typedef struct judge_info_struct {
     ext_power_heat_data_t						    PowerHeatData;		        // 0x0202         实时功率热量数据
     ext_robot_pos_t						            GameRobotPos;			    // 0x0203         机器人位置
     ext_buff_t									    Buff;						// 0x0204     机器人增益
-    aerial_robot_energy_t				            AerialRobotEnergy;// 0x0205             空中机器人能量状态
+//    aerial_robot_energy_t				            AerialRobotEnergy;// 0x0205             空中机器人能量状态
     ext_robot_hurt_t								RobotHurt;					//0x0206         伤害状态
     ext_shoot_data_t								ShootData;					//0x0207         实时射击信息(射频  射速  子弹信息)
     ext_bullet_remaining_t					        BulletRemaining;		    //0x0208	        子弹剩余发射数
@@ -1084,6 +1091,6 @@ extern void referee_task(void const*argument);
 _Noreturn extern void UI_paint_task(void const*argument);
 extern uint8_t usart6_buf[REFEREE_BUFFER_SIZE];
 extern uint8_t usart1_buf[REFEREE_BUFFER_SIZE];
-
+void dart_launch();
 
 #endif //DEMO1_REFEREE_H

@@ -54,11 +54,10 @@ ui_robot_status_t ui_robot_status={
 static void referee_unpack_fifo_data(void);
 static bool_t Referee_read_data(uint8_t *ReadFromUsart);
 static void ui_static_draw();
-static void dart_launch();
 /*裁判系统主任务*/
 
 extern fp32 INS_angle[3];
-
+void dart_launch();
 //串口中断函数
 void USART6_IRQHandler(void)
 {
@@ -254,8 +253,9 @@ bool_t Referee_read_data(uint8_t *ReadFromUsart)
 
                     case Referee_ID_power_heat_data://0x0202    实时功率热量数据    50HZ
                         memcpy(&Referee.PowerHeatData,ReadFromUsart+DATA,Referee_LEN_power_heat_data);
+                        //测量功率模型用，为使测量值测量频率和裁判系统回报的功率频率一致
+                        //收集数据
 
-                        break;
 
                     case Referee_ID_game_robot_pos://0x0203     机器人位置数据     10HZ
                         memcpy(&Referee.GameRobotPos,ReadFromUsart+DATA,Referee_LEN_game_robot_pos);
@@ -288,7 +288,6 @@ bool_t Referee_read_data(uint8_t *ReadFromUsart)
 
                     case Referee_ID_dart_client_directive://0x020A  飞镖机器人客户端指令书, 10Hz
                         memcpy(&Referee.DartClient,ReadFromUsart+DATA,Referee_LEN_dart_client_directive);
-                        dart_launch();
                         break;
 
                     case Referee_ID_dart_all_robot_position://0x020B
@@ -1011,21 +1010,20 @@ _Noreturn void UI_paint_task(void const*argument)
     }
 }
 uint8_t progress=4;
-static void dart_launch()
+void dart_launch()
 {
-    launch_grant|=(Referee.DartClient.dart_launch_opening_status==0&&progress==4);
-    launch_grant|=(Referee.DartRemainingTime.dart_remaining_time>0&&Referee.DartRemainingTime.dart_remaining_time<=20&&progress==4);
-    if(Referee.DartClient.latest_launch_cmd_time!=0&&Referee.DartClient.latest_launch_cmd_time!=last_dart_launch_time&&progress==4)
+    launch_grant|=(Referee.DartClient.dart_launch_opening_status==0&&Referee.GameState.game_progress==4);
+    launch_grant|=(Referee.DartRemainingTime.dart_remaining_time>0&&Referee.DartRemainingTime.dart_remaining_time<=20&&Referee.GameState.game_progress==4);
+    if(Referee.DartClient.latest_launch_cmd_time!=0&&Referee.DartClient.latest_launch_cmd_time!=last_dart_launch_time&&Referee.GameState.game_progress==4)
     {
         last_dart_launch_time= Referee.DartClient.latest_launch_cmd_time;
         launch_grant=true;
     }
 
-    if((Referee.GameState.stage_remain_time<10&&progress==4)||
-    (progress==1||progress==2||
-    progress==3||progress==5))
+    if((Referee.GameState.stage_remain_time<10&&Referee.GameState.game_progress==4)||
+    (Referee.GameState.game_progress==1||Referee.GameState.game_progress==2||
+            Referee.GameState.game_progress==3||Referee.GameState.game_progress==5))
     {
         launch_grant=false;
     }
-
 }

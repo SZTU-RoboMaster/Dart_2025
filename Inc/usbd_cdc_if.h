@@ -62,6 +62,7 @@
   * @brief Types.
   * @{
   */
+
 /* USER CODE BEGIN EXPORTED_TYPES */
 
 /* USER CODE END EXPORTED_TYPES */

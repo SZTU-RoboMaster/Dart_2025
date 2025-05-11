@@ -139,32 +139,32 @@ void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 2 */
 /**
-  * @brief  初始化控制激光的IO
-  * @param  无
-  * @retval 无
+  * @brief  锟斤拷始锟斤拷锟斤拷锟狡硷拷锟斤拷锟絀O
+  * @param  锟斤拷
+  * @retval 锟斤拷
   */
 void JiGuang_GPIO_Config(void)
 {
 
-    /*定义一个GPIO_InitTypeDef类型的结构体*/
+    /*锟斤拷锟斤拷一锟斤拷GPIO_InitTypeDef锟斤拷锟酵的结构锟斤拷*/
     GPIO_InitTypeDef  GPIO_InitStruct;
 
-    /*开启激光引脚（PC8）相关的GPIO外设时钟*/
+    /*锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟脚ｏ拷PC8锟斤拷锟斤拷氐锟紾PIO锟斤拷锟斤拷时锟斤拷*/
     JiGuang_CLK_ENABLE();
 
-    /*选择要控制的GPIO引脚*/
+    /*选锟斤拷要锟斤拷锟狡碉拷GPIO锟斤拷锟斤拷*/
     GPIO_InitStruct.Pin = GPIO_JiGuang_Pin;
 
-    /*设置引脚的输出类型为推挽输出*/
+    /*锟斤拷锟斤拷锟斤拷锟脚碉拷锟斤拷锟斤拷锟斤拷锟轿拷锟斤拷锟斤拷锟斤拷*/
     GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
 
-    /*设置引脚为上拉模式*/
+    /*锟斤拷锟斤拷锟斤拷锟斤拷为锟斤拷锟斤拷模式*/
     GPIO_InitStruct.Pull  = GPIO_PULLUP;
 
-    /*设置引脚速率为高速 */
+    /*锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷为锟斤拷锟斤拷 */
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 
-    /*调用库函数，使用上面配置的GPIO_InitStructure初始化GPIO*/
+    /*锟斤拷锟矫库函锟斤拷锟斤拷使锟斤拷锟斤拷锟斤拷锟斤拷锟矫碉拷GPIO_InitStructure锟斤拷始锟斤拷GPIO*/
     HAL_GPIO_Init(GPIO_JiGuang_PORT, &GPIO_InitStruct);
 
     HAL_GPIO_WritePin(GPIO_JiGuang_PORT,GPIO_JiGuang_Pin,GPIO_PIN_SET);

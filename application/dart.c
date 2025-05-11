@@ -18,7 +18,6 @@ uint8_t num_launched=0;//飞镖已发射数目
 uint8_t dart_goal=0;//飞镖目标,1为前哨站,2为基地
 uint8_t ceshi_launched=0;
 
-
 uint8_t launcherable_num;//飞镖可发射数目1为两发,2为四发
 struct Launch_t launcher_dart;
 struct Gimbal_t gimbal_dart;
@@ -85,7 +84,7 @@ bool trigger_move_mid_l;  //确定左拨杆放中间的标志位
 uint8_t begin_count1=1;
 
 uint8_t flag1=false;//测试用
-int16_t init_speed_thrust_move=-2500;//测试用//-1000
+int16_t init_speed_thrust_move=-1500;//测试用//-1000
 int16_t init_speed_drive=1000;
 int16_t init_speed_trigger=-2500;
 int16_t init_speed_thrust_angle=-600;//600
@@ -177,7 +176,6 @@ first_order_filter_type_t filter_yaw_in;
 void dart_task(void const*pvParameters)
 {
     vTaskDelay(DART_TASK_INIT_TIME);
-
     dart_init();
     dart_reset();
     turn_motor_init();
@@ -187,6 +185,8 @@ void dart_task(void const*pvParameters)
                          1.6f);
     while(1)
     {
+        dart_launch();
+
         dart_data_update();
         dart_mode_set();
         switch(gimbal_dart.mode)
@@ -297,10 +297,10 @@ static void dart_reset()
 
         CAN_cmd_motor(CAN_2,
                       CAN_MOTOR_0x200_ID,
-                      0,
-                      0,
                       thrust_motor.thrust_angle_motor.give_current,
-                      thrust_motor.thrust_move_motor.give_current);
+                      thrust_motor.thrust_move_motor.give_current,
+                      0,
+                      0);
     }
     init_ecd_trigger = thrust_motor.trigger_motor.motor_measure->total_ecd;
     init_ecd_thrust_move = thrust_motor.thrust_move_motor.motor_measure->total_ecd;
@@ -334,11 +334,13 @@ static void dart_reset()
 
     ready2_thrust_angle_goal_angle=55.566f+init_angle_thrust_angle;//61
 
+
+    //前哨站数据:七号:166.0974 二号:165.7044 三号:166.7044 六号:165.5044 四号:166.0974 五号:165.7044 八号:166.3044 九号:165.1044
     ready2_thrust_move_goal_distance=105.5266f+init_thrust_move_distance;//112.5266
-    trigger_to_outposts_distance_set[0]=161.7974f+init_trigger_distance;//162.2974
-    trigger_to_outposts_distance_set[1]=162.7044f+init_trigger_distance;//162.2044
-    trigger_to_outposts_distance_set[2]=163.7044f+init_trigger_distance;//163.2044
-    trigger_to_outposts_distance_set[3]=162.0044f+init_trigger_distance;//163.5044
+    trigger_to_outposts_distance_set[0]=166.0974f+init_trigger_distance;//162.2974
+    trigger_to_outposts_distance_set[1]=165.7044f+init_trigger_distance;//162.2044
+    trigger_to_outposts_distance_set[2]=166.3044f+init_trigger_distance;//163.2044
+    trigger_to_outposts_distance_set[3]=165.1044f+init_trigger_distance;//163.5044
     trigger_to_base_distance_set[0]=45.0f+init_trigger_distance;//白天 28.5//晚上 白天数据下移2(所有) 22
     trigger_to_base_distance_set[1]=45.49f+init_trigger_distance;//白天 31.49//晚上 25.09
     trigger_to_base_distance_set[2]=45.59f+init_trigger_distance;//白天31.09//晚上 25.09
@@ -496,11 +498,11 @@ static void set_drive_distance()
     {
         ready1_set_drive_right_distance = -(dart_length - slide_length - trigger_to_outposts_distance_set[num_launched] -
                                             get_drive_right_distance);
-        ready1_set_drive_left_distance=(dart_length-slide_length-trigger_to_outposts_distance_set[num_launched]-get_drive_left_distance+9);
+        ready1_set_drive_left_distance=(dart_length-slide_length-trigger_to_outposts_distance_set[num_launched]-get_drive_left_distance+8.5);
     }else {
         ready1_set_drive_right_distance = -(dart_length - slide_length - trigger_to_base_distance_set[num_launched] -
                                             get_drive_right_distance);
-        ready1_set_drive_left_distance = (dart_length - slide_length - trigger_to_base_distance_set[num_launched]+9 -
+        ready1_set_drive_left_distance = (dart_length - slide_length - trigger_to_base_distance_set[num_launched]+8.5 -
                                           get_drive_left_distance);
     }
 }
@@ -659,7 +661,7 @@ static void dart_ready1()
                                                                        launcher_dart.push_motor_l.speed_p.set);
                     launcher_dart.push_motor_r.give_current=-launcher_dart.push_motor_l.give_current;
                 }
-                if ( fabs(get_drive_left_distance - ready1_set_drive_left_distance) < 9) {
+                if ( fabs(get_drive_left_distance - ready1_set_drive_left_distance) < 12) {
                     if(ready1_load_flag==false) {
                         trigger_off();
                         ready1_load_time = HAL_GetTick();
@@ -751,7 +753,7 @@ static void set_goal_drive_distance()
     if(dart_goal==GOAL_FRONT_STATION)
     {
         ready2_goal_set_drive_left_distance=(dart_length - slide_length - trigger_to_outposts_distance_set[num_launched]
-                                             - back_drive_left_distance+8.5);
+                                             - back_drive_left_distance+9);
         ready2_goal_set_drive_right_distance = -(dart_length - slide_length -
                                                  trigger_to_outposts_distance_set[num_launched] -
                                                  back_drive_right_distance);
@@ -760,7 +762,7 @@ static void set_goal_drive_distance()
                                                  trigger_to_base_distance_set[num_launched] -
                                                  back_drive_right_distance);
         ready2_goal_set_drive_left_distance = (dart_length - slide_length - trigger_to_base_distance_set[num_launched]-2
-                                               - back_drive_left_distance+8.5);
+                                               - back_drive_left_distance+9);
     }
 }
 
@@ -997,7 +999,7 @@ static void dart_ready2()
                                                                    launcher_dart.push_motor_l.motor_measure->speed_rpm,
                                                                    launcher_dart.push_motor_l.speed_p.set);
                 launcher_dart.push_motor_r.give_current = -launcher_dart.push_motor_l.give_current;
-                if (fabs(get_drive_left_distance - ready2_goal_set_drive_left_distance) < 8.0f) {
+                if (fabs(get_drive_left_distance - ready2_goal_set_drive_left_distance) < 9.0f) {
                     trigger_off();
                     if (ready2_load_flag2 == false) {
                         ready2_load_time = HAL_GetTick();

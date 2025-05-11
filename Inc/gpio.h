@@ -30,9 +30,9 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 
-//Òý½Å¶¨Òå
+//ï¿½ï¿½ï¿½Å¶ï¿½ï¿½ï¿½
 /*******************************************************/
-//PC8Òý½Å
+//PC8ï¿½ï¿½ï¿½ï¿½
 
 #define GPIO_JiGuang_Pin        GPIO_PIN_8
 #define GPIO_JiGuang_PORT       GPIOC
